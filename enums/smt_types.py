@@ -2,13 +2,13 @@ from enum import Enum
 
 
 class DateType(Enum):
-    TYPE_DATE = "Date"
-    TYPE_STRING = "String"
-    TYPE_INT = "Int"
-    TYPE_INT_YM = "IntYM"  # YYYYMM
-    TYPE_YEAR = "INTY"
-    TYPE_MONTH = "INTM"
-    TYPE_DAY = "INTD"
+    TYPE_DATE = "date"
+    TYPE_STRING = "str"
+    TYPE_INT = "int"
+    TYPE_INT_YM = "strYM"  # YYYYMM
+    TYPE_YEAR = "intY"
+    TYPE_MONTH = "intM"
+    TYPE_DAY = "intD"
 
     def __str__(self) -> str:
         return self.value

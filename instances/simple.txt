@@ -30,3 +30,6 @@ $P-minus3tag  #   D.as_str.minus_day(2)
 $P-minus6tag #   D.as_str.minus_day(12)
 $P-plus4monat  #   D.as_str.plus_day(4)
 $P-plus8monat #   D.as_str.plus_day(8)
+
+$P-minus7tag #  
+$P-minus14tag #  

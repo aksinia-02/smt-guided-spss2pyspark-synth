@@ -1,6 +1,17 @@
 from typing import List, Any
 from smt_types import DateType
 
+from smt_types import DateType, DateUnit
+
+PRIMITIVES_TYPES = [
+    {
+        "name": "as_date",
+        "return_type": DateType.TYPE_DATE,
+        "arg_types": [],
+    }
+
+]
+
 PRIMITIVES = [
     # Primitive(Name, ReturnType, ArgTypes, GeneratorFunc)
     {
