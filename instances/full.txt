@@ -1,0 +1,35 @@
+$P-datum    #   D.as_date.BD
+$P-tag  #   D.as_date.BD
+$P-tag8stellig  #   D.as_int.BD
+$P-monat    #   D.as_strYM.current_month
+
+$P-tagUltimo    #   D.as_int.month_end
+$P-tagUltimoVormonat    #   D.as_int.minus_month_end(1)
+$P-tagUltimoAktJahr #   D.as_int.year_end
+$P-tagUltimoVorjahr #   D.as_int.minus_year_end
+$P-tagUltimoNextJahr    #   D.as_int.plus_year_end
+
+$P-jahrzahlAktuell  #   D.as_date.BD.year
+$P-jahrzahlNextJahr #   D.as_date.BD.year + 1
+$P-jahrzahlVorjahr  #   D.as_date.BD.year - 1
+$P-monatzahl    #   D.as_date.BD.month
+$P-tagzahl  #   D.as_date.BD.day
+
+$P-plus1jahrTag #   D.as_int.plus_year(1)
+$P-minus1jahrTag    #   D.as_int.minus_year(1)
+$P-minus30tag   #   D.as_int.minus_30days
+$P-minus60tag   #   D.as_int.minus_60days
+$P-minus90tag   #   D.as_int.minus_90days
+
+$P-minus2monat  #   D.as_strYM.minus_month(2)
+$P-minus12monat #   D.as_strYM.minus_month(12)
+$P-plus5monat  #   D.as_strYM.plus_month(5)
+$P-plus10monat #   D.as_strYM.plus_month(10)
+
+$P-minus3tag  #   D.as_str.minus_day(3)
+$P-minus6tag #   D.as_str.minus_day(6)
+$P-plus4monat  #   D.as_str.plus_day(4)
+$P-plus8monat #   D.as_str.plus_day(8)
+
+$P-minus7tag #  D.as_int.minus_week(1)
+$P-minus14tag #  D.as_int.minus_week(2)

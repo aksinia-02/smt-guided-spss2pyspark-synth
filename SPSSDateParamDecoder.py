@@ -3,7 +3,7 @@ import re
 from matplotlib.pylab import number
 
 from enums.smt_types import DateType, DateUnit
-from invariants import PrimitiveSemantics
+from functions_elements.invariants import PrimitiveSemantics
 
 class SPSSDateParamDecoder:
     """
@@ -129,6 +129,7 @@ class SPSSDateParamDecoder:
             date_type = DateType.TYPE_DATE
 
         primitive = PrimitiveSemantics(
+            name=param_str,
             target_type=date_type,
             direction=parsed["direction"],
             unit=unit,

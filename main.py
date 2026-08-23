@@ -2,10 +2,13 @@ import argparse
 
 from tests.test_dataparams import test_dataparam
 from tests.test_prim import test_prim
-from invariants import Primitives
+from tests.test_re_expressions import test_re_expressions
+from functions_elements.invariants import Primitives
 from SemanticMatcher import SemanticMatcher
 
 def main(args):
+    test_re_expressions(args.file)
+    return
     decoded_qeustions = test_prim(args.file)
 
     primitives = Primitives()
@@ -17,7 +20,7 @@ def main(args):
         print("Ranked Semantic Candidates:")
         for prim, score in candidates:
             # Fill dynamic argument if required
-            args = [str(question['amount'])] if prim.arg_types else []
+            args = [str(question.amount)] if prim.arg_types else []
             pyspark_code = prim.to_pyspark(args)
             print(f" -> Candidate: {pyspark_code} | Score: {score}")
 
