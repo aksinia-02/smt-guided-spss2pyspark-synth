@@ -14,13 +14,13 @@ class PrimitiveType(Enum):
 
 
 class DateType(Enum):
-    TYPE_DATE = ("date", PrimitiveType.TYPE_DATE, "YYYY-MM-DD", 30)
-    TYPE_STRING = ("str", PrimitiveType.TYPE_STRING, "YYYY-MM-DD", 30)
-    TYPE_INT = ("int", PrimitiveType.TYPE_INT, "YYYYMMDD", 30)
-    TYPE_INT_YM = ("strYM", PrimitiveType.TYPE_INT, "YYYYMM", 15)
-    TYPE_YEAR = ("year", PrimitiveType.TYPE_INT, "YYYY", 5)
+    TYPE_DATE = ("date", PrimitiveType.TYPE_DATE, "yyyy-MM-dd", 30)
+    TYPE_STRING = ("str", PrimitiveType.TYPE_STRING, "yyyy-MM-dd", 30)
+    TYPE_INT = ("int", PrimitiveType.TYPE_INT, "yyyyMMdd", 30)
+    TYPE_INT_YM = ("strYM", PrimitiveType.TYPE_INT, "yyyyMM", 15)
+    TYPE_YEAR = ("year", PrimitiveType.TYPE_INT, "yyyy", 5)
     TYPE_MONTH = ("month", PrimitiveType.TYPE_INT, "MM", 3)
-    TYPE_DAY = ("day", PrimitiveType.TYPE_INT, "DD", 2)
+    TYPE_DAY = ("day", PrimitiveType.TYPE_INT, "dd", 2)
 
     def __init__(
         self,

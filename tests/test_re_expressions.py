@@ -4,6 +4,7 @@ from ContextAwareSynthesizer import ContextAwareSynthesizer
 from SemanticMatcher import SemanticMatcher
 from functions_elements.invariants import Primitives
 from enums.smt_types import DateType
+from handlers.GECISVerifierHandler import UserConsoleHandler, GecisVerifierHandler
 
 
 def test_re_expressions(file_paths):
@@ -28,8 +29,10 @@ def test_re_expressions(file_paths):
                 synthezer = ContextAwareSynthesizer(SPSSDateParamDecoder(), SemanticMatcher(), primitives)
 
                 exp_type = DateType.get_type_by_value(exp_type)
-                answer = synthezer.synthesize(ast, exp_type)
-                print(answer)
+                candidates = synthezer.synthesize(ast, exp_type)
+
+                user_handler = UserConsoleHandler()
+                user_handler.select_candidate(candidates)
                 return
                 correct_answer = question_answer[1].strip()
                 correct_answer = ""

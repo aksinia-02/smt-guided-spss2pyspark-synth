@@ -56,29 +56,48 @@ class ContextAwareSynthesizer:
 
         for param in pyspark_functions:
             print(param)
+        
+        for param in extracted_params:
+            print(param)
 
-
-        if len(extracted_params) == 1:
+        # TODO: only for date parameters, we need to handle other types of parameters as well
+        if len(extracted_params) == 1 and len(pyspark_functions) == 0:
+            print(extracted_params[0])
             raw_param = extracted_params[0]
             decoded_spec = self.decoder.decode(raw_param)
-            
-            decoded_spec.target_type = expected_type
+        #TODO: for every candidate calculate the complexity of calculation
+        #TODO: another idea filter candidates must return not the score only but also what is wrong with the candidate
             
             candidates = self.matcher.filter_candidates(decoded_spec, self.primitives.primitives)
-            candidates = candidates[0:4]
-            for i in range(0, len(candidates)):
-                best_primitive, top_score = candidates[i]
-                if decoded_spec.amount is not None and best_primitive.arg_types:
-                    print(best_primitive.to_pyspark([str(decoded_spec.amount)]))
-                else:
-                    print(best_primitive.to_pyspark([]))
-            
-            if candidates:
-                best_primitive, top_score = candidates[0]
-                
-                if decoded_spec.amount is not None and best_primitive.arg_types:
-                    return best_primitive.to_pyspark([str(decoded_spec.amount)])
-                else:
-                    return best_primitive.to_pyspark([])
+            target_cast_functions = self.primitives.get_functions_with_specified_target_type(expected_type)
 
+            synthesized_expressions = []
+
+            for candidate, top_score in candidates:
+
+                if decoded_spec.amount is not None and candidate.arg_types:
+                    core_expr = candidate.to_pyspark([str(decoded_spec.amount)])
+                else:
+                    core_expr = candidate.to_pyspark([])
+
+                if candidate.return_type == expected_type:
+                    final_expr = f'F.lit({core_expr})'
+                else:
+                    matching_casts = self.primitives.get_functions_with_specified_import_type(
+                        import_type=candidate.return_type, 
+                        functions=target_cast_functions
+                    )
+
+                    if matching_casts:
+                        cast_func = matching_casts[0]
+                        final_expr = cast_func.to_pyspark([core_expr])
+                    else:
+                        print("No matching cast function found for candidate:", candidate)
+                        final_expr = f'F.lit({core_expr})'
+
+                synthesized_expressions.append((final_expr, top_score))
+
+            return synthesized_expressions
+
+        # TODO implement synthesis for more complex ASTs with multiple parameters and functions and make it before trying to find better solution
         return self._synthesize_full_ast(spss_ast, pyspark_functions)
