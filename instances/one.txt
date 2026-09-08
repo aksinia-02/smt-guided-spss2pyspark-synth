@@ -1,1 +1,1 @@
-$P-jahrzahlVorjahr #  D.as_int.minus_week(2) # str
+$P-tagUltimoNextJahr    #   D.as_int.plus_year_end # date

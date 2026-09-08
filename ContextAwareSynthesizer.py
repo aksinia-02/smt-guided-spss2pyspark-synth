@@ -3,6 +3,8 @@ from dataclasses import dataclass
 from typing import List, Union
 from SPSSExpressionParser import ASTNode, ParamNode, FunctionCallNode, BinaryOpNode
 
+from primitives.composite_registry import MasterPrimitiveRegistry
+
 
 class SPSSASTVisitor:
     """Traverses the SPSS AST to extract parameters and used functions."""
@@ -34,10 +36,10 @@ SPSS_TO_PYSPARK_FUNCTION_MAP = {
 }
 
 class ContextAwareSynthesizer:
-    def __init__(self, decoder, semantic_matcher, primitives):
+    def __init__(self, decoder, semantic_matcher):
         self.decoder = decoder
         self.matcher = semantic_matcher
-        self.primitives = primitives
+        self.primitives = MasterPrimitiveRegistry()
 
     def synthesize(self, spss_ast: ASTNode, expected_type: DateType) -> str:
 
@@ -54,11 +56,11 @@ class ContextAwareSynthesizer:
             if fn in SPSS_TO_PYSPARK_FUNCTION_MAP
         ]
 
-        for param in pyspark_functions:
-            print(param)
+        # for param in pyspark_functions:
+        #     print(param)
         
-        for param in extracted_params:
-            print(param)
+        # for param in extracted_params:
+        #     print(param)
 
         # TODO: only for date parameters, we need to handle other types of parameters as well
         if len(extracted_params) == 1 and len(pyspark_functions) == 0:
@@ -80,21 +82,29 @@ class ContextAwareSynthesizer:
                 else:
                     core_expr = candidate.to_pyspark([])
 
-                if candidate.return_type == expected_type:
+                print(f'compare {candidate.return_type} with {expected_type}')
+                if candidate.return_type.eq_exact(expected_type):
                     final_expr = f'F.lit({core_expr})'
+                    print(f"\nCandidate matches expected type: {final_expr}")
                 else:
+                    print(f"\nCandidate does not match expected type: {core_expr}. Looking for cast functions to convert {candidate.return_type} to {expected_type}.")
                     matching_casts = self.primitives.get_functions_with_specified_import_type(
                         import_type=candidate.return_type, 
                         functions=target_cast_functions
                     )
 
-                    if matching_casts:
-                        cast_func = matching_casts[0]
-                        final_expr = cast_func.to_pyspark([core_expr])
-                    else:
-                        print("No matching cast function found for candidate:", candidate)
-                        final_expr = f'F.lit({core_expr})'
+                    # print('___________________________________')
+                    # self.primitives.print_premitives(matching_casts)
 
+                    if matching_casts:
+                        for cast_func in matching_casts:
+                            print(f"Found matching cast function: {cast_func.to_pyspark([core_expr])}")
+                            synthesized_expressions.append((cast_func.to_pyspark([core_expr]), top_score))
+                        continue
+                    else:
+                        print("No matching cast function found for candidate:", core_expr)
+                        continue
+                print(f"Adding synthesized expression: {final_expr} with score {top_score}")
                 synthesized_expressions.append((final_expr, top_score))
 
             return synthesized_expressions

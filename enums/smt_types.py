@@ -12,6 +12,20 @@ class PrimitiveType(Enum):
     def __repr__(self) -> str:
         return f"'{self.value}'"
 
+    @classmethod
+    def get_type_by_value(cls, value: str) -> "PrimitiveType | None":
+        for member in cls:
+            if member.value == value:
+                return member
+        return None 
+
+    def __eq__(self, other):
+        if isinstance(other, PrimitiveType):
+            return self.value == other.value
+        if isinstance(other, DateType):
+            return self.value == other.primitive_type.value
+        return super().__eq__(other)
+
 
 class DateType(Enum):
     TYPE_DATE = ("date", PrimitiveType.TYPE_DATE, "yyyy-MM-dd", 30)
@@ -45,6 +59,16 @@ class DateType(Enum):
         if isinstance(other, DateType):
             return self.primitive_type == other.primitive_type
         return super().__eq__(other)
+
+    def eq_exact(self, other) -> bool:
+        if isinstance(other, DateType):
+            return (
+                self.primitive_type == other.primitive_type and
+                self.format == other.format
+            )
+        elif isinstance(other, PrimitiveType):
+            return self.primitive_type == other
+        return False
 
     def eq_score(self, other) -> int:
         ## returns the score, that represents how easy other is derivable from self

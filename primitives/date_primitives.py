@@ -15,10 +15,10 @@ class DatePrimitiveRegistry(BasePrimitiveRegistry):
         arg_types = []
         category = Category.DATE_NAMESPACE
 
-        pyspark_str = f"D.as_intYM.current_month)"
+        pyspark_str = f"D.as_intYM.current_month"
 
         semantics = DateSemantics(
-            name=f"D.as_intYM.current_month)",
+            name=f"D.as_intYM.current_month",
             target_type=DateType.TYPE_INT_YM,
             direction=None,
             unit=None,
@@ -76,10 +76,10 @@ class DatePrimitiveRegistry(BasePrimitiveRegistry):
             arg_types = []
             category = Category.DATE_NAMESPACE
 
-            pyspark_str = f"D.as_{type.value}.BD)"
+            pyspark_str = f"D.as_{type.value}.BD"
 
             semantics = DateSemantics(
-                name=f"D.as_{type.value}.BD)",
+                name=f"D.as_{type.value}.BD",
                 target_type=type,
                 direction=None,
                 unit=None,

@@ -1,12 +1,12 @@
 from typing import List
 
 from .base_registry import BasePrimitiveRegistry
-from enums.smt_types import DateType, PrimitiveType
+from enums.smt_types import DateType
 from enums.categories import Category
 from .Semantics import FuncSemantics
 
-class CastFunctionRegistry(BasePrimitiveRegistry):
-    """Handles type conversion functions between Date, String, and Int."""
+class StringFunctionRegistry(BasePrimitiveRegistry):
+    """Handles string manipulation functions."""
     
     def register_all(self) -> None:
         self.init_cast_functions()
@@ -17,7 +17,7 @@ class CastFunctionRegistry(BasePrimitiveRegistry):
         
             name = f"F.{type.value}()"
             return_type = type
-            arg_types = [(type, True)]
+            arg_types = List[DateType]
             category = Category.CAST_TYPE
     
             pyspark_str = f"F.{type.value}({{0}})"
@@ -60,22 +60,6 @@ class CastFunctionRegistry(BasePrimitiveRegistry):
             name=f"cast_from_int_to_string",
             target_type=DateType.TYPE_STRING,
             import_type=DateType.TYPE_INT,
-            weight=1000
-        )
-        self.add_primitive(name, return_type, arg_types, category, semantics, pyspark_str, python_eval=None, func=True)
-
-        ## Int to String any format
-        name = f"cast_from_int_to_string_any_format"
-        return_type = PrimitiveType.TYPE_STRING
-        arg_types = [(PrimitiveType.TYPE_INT, True)]
-        category = Category.CAST_TYPE
-
-        pyspark_str = f"{{0}}.cast(t.StringType())"
-
-        semantics = FuncSemantics(
-            name=f"cast_from_int_to_string_any_format",
-            target_type=PrimitiveType.TYPE_STRING,
-            import_type=PrimitiveType.TYPE_INT,
             weight=1000
         )
         self.add_primitive(name, return_type, arg_types, category, semantics, pyspark_str, python_eval=None, func=True)

@@ -25,18 +25,37 @@ class MasterPrimitiveRegistry:
         """
         Returns a list of functions that match the required import_type.
         """
+        # print('__________-')
+        # print(target_type)
+        # print('__________-')
+        # for func in self.cast_functions:
+        #     print(func.semantics.target_type)
+        # print('__________-')
         return [
             func for func in functions
             if isinstance(func.semantics, FuncSemantics) and
-               func.semantics.import_type == import_type
+                import_type.eq_exact(func.semantics.import_type)
         ]
 
     def get_functions_with_specified_target_type(self, target_type: DateType) -> List[Primitive]:
         """
         Returns a list of functions that have the specified target_type.
         """
+        # print('__________-')
+        # print(target_type)
+        # print('__________-')
+        # for func in self.cast_functions:
+        #     print(func.semantics.target_type)
+        # print('__________-')
         return [
             func for func in self.cast_functions
             if isinstance(func.semantics, FuncSemantics) and
-               func.semantics.target_type == target_type
+                target_type == func.semantics.target_type
         ]
+
+    def print_premitives(self, primitives: List[Primitive]) -> None:
+        """
+        Prints the details of each primitive in the provided list.
+        """
+        for primitive in primitives:
+            print(str(primitive) + "\n")

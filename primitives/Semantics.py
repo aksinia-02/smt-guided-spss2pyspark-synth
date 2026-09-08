@@ -30,3 +30,10 @@ class FuncSemantics(BaseSemantics):
     """Semantics specific to functions and type transformations."""
     import_type: Optional[DateType] = None
     weight: int = 1000
+
+@dataclass
+class StringSemantics(BaseSemantics):
+    """Semantics specific to string manipulation functions."""
+    import_type: Optional[DateType] = None
+    pos_flag: int = 0 # 0: no position, substring, 1: prefix, 2: suffix 
+    weight: int = 1000
