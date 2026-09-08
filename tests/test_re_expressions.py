@@ -2,7 +2,7 @@ from SPSSDateParamDecoder import SPSSDateParamDecoder
 from SPSSExpressionParser import SPSSExpressionParser
 from ContextAwareSynthesizer import ContextAwareSynthesizer
 from SemanticMatcher import SemanticMatcher
-from functions_elements.invariants import Primitives
+from primitives.composite_registry import MasterPrimitiveRegistry
 from enums.smt_types import DateType
 from handlers.GECISVerifierHandler import UserConsoleHandler, GecisVerifierHandler
 
@@ -23,7 +23,7 @@ def test_re_expressions(file_paths):
                 ast = parser.parse()
                 parser.print_ast(ast)
 
-                primitives = Primitives()
+                primitives = MasterPrimitiveRegistry()
 
 
                 synthezer = ContextAwareSynthesizer(SPSSDateParamDecoder(), SemanticMatcher(), primitives)

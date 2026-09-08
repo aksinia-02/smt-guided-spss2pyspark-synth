@@ -68,7 +68,7 @@ class ContextAwareSynthesizer:
         #TODO: for every candidate calculate the complexity of calculation
         #TODO: another idea filter candidates must return not the score only but also what is wrong with the candidate
             
-            candidates = self.matcher.filter_candidates(decoded_spec, self.primitives.primitives)
+            candidates = self.matcher.filter_candidates(decoded_spec, self.primitives.date_primitives)
             target_cast_functions = self.primitives.get_functions_with_specified_target_type(expected_type)
 
             synthesized_expressions = []

@@ -1,5 +1,5 @@
 from typing import List
-from functions_elements.invariants import Primitive
+from primitives.Primitive import Primitive
 
 class SemanticMatcher:
     @staticmethod
