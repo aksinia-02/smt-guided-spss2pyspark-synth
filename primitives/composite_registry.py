@@ -6,6 +6,7 @@ from .Semantics import DateSemantics, FuncSemantics
 from .Primitive import Primitive
 from .date_primitives import DatePrimitiveRegistry
 from .cast_functions import CastFunctionRegistry
+from .string_functions import StringFunctionRegistry
 
 @dataclass
 class MasterPrimitiveRegistry:
@@ -14,11 +15,23 @@ class MasterPrimitiveRegistry:
         self.registries = [
             DatePrimitiveRegistry(),
             CastFunctionRegistry(),
+            StringFunctionRegistry(),
             # Add new function domain children here
         ]
 
         self.date_primitives = self.registries[0].primitives
         self.cast_functions = self.registries[1].primitives
+        self.string_functions = self.registries[2].primitives
+
+    def get_function_by_name(self, name: str) -> Primitive:
+        """
+        Returns the function with the specified name from the registered functions.
+        """
+        for func in self.string_functions:
+            if func.name == name:
+                return func
+        print(f"Function '{name}' not found in the registered functions.")
+        return None
 
 
     def get_functions_with_specified_import_type(self, import_type: DateType, functions: List[Primitive]) -> List[Primitive]:

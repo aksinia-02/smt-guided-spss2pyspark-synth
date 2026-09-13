@@ -1,7 +1,7 @@
 from enums.smt_types import DateType
 from dataclasses import dataclass
 from typing import List, Union
-from SPSSExpressionParser import ASTNode, ParamNode, FunctionCallNode, BinaryOpNode
+from SPSSExpressionParser import ASTNode, ParamNode, FunctionCallNode, BinaryOpNode, LiteralNode
 
 from primitives.composite_registry import MasterPrimitiveRegistry
 
@@ -41,10 +41,76 @@ class ContextAwareSynthesizer:
         self.matcher = semantic_matcher
         self.primitives = MasterPrimitiveRegistry()
 
+    def _synthesize_full_ast(self, node: ASTNode, expected_type: DateType) -> str:
+        """Recursively walks the AST and emits PySpark Column expressions."""
+
+        print('To synthesize node:', node)
+        
+        # Parameter Node (TODO: now it woks only for date primitives)
+        if isinstance(node, ParamNode):
+            try:
+                # Try resolving the individual parameter using your SemanticMatcher
+                decoded_spec = self.decoder.decode(node.name)
+                candidates = self.matcher.filter_candidates(decoded_spec, self.primitives.date_primitives)
+                
+                if candidates:
+                    best_primitive, _ = candidates[0]
+                    if decoded_spec.amount is not None and best_primitive.arg_types:
+                        return best_primitive.to_pyspark([str(decoded_spec.amount)])
+                    return best_primitive.to_pyspark([])
+            except Exception:
+                print( f"Failed to decode or match parameter: {node.name}. Falling back to direct column reference.")
+            
+            # Fallback if no matching primitive is found
+            return f"F.col('{node.name}')" #TODO F.lit vs F.col
+
+        # Literal Nodes
+        elif isinstance(node, LiteralNode):
+            if isinstance(node.value, str):
+                return f"F.lit('{node.value}')"
+            return str(node.value)
+
+        # Binary Operations TODO: now supports only concatination and addition ---
+        elif isinstance(node, BinaryOpNode):
+            left_expr = self._synthesize_full_ast(node.left, expected_type)
+            right_expr = self._synthesize_full_ast(node.right, expected_type)
+            
+            if node.op == "+":
+                # Check if we are dealing with string concatenation vs arithmetic addition
+                if "F.lit('" in left_expr or "F.lit('" in right_expr or "F.substring" in left_expr or "F.substring" in right_expr:
+                    return f"F.concat({left_expr}, {right_expr})"
+                return f"({left_expr} + {right_expr})"
+            
+            return f"({left_expr} {node.op} {right_expr})"
+
+        # Function Calls TODO: currently supports only string functions like startstring, endstring, substring
+        elif isinstance(node, FunctionCallNode):
+            fn_name = node.name.lower()
+
+            length_expr = self._synthesize_full_ast(node.args[0], expected_type)
+            target_expr = self._synthesize_full_ast(node.args[1], expected_type)
+
+            func = self.primitives.get_function_by_name(fn_name)
+            return func.to_pyspark([target_expr,length_expr])
+
+            # elif fn_name in ["concat", "string_concat"]:
+            #     arg_exprs = [self._synthesize_full_ast(arg, expected_type) for arg in node.args]
+            #     return f"F.concat({', '.join(arg_exprs)})"
+
+            # else:
+            #     # Generic fallback for unmapped function calls
+            #     arg_exprs = [self._synthesize_full_ast(arg, expected_type) for arg in node.args]
+            #     return f"F.{fn_name}({', '.join(arg_exprs)})"
+
+        raise TypeError(f"Unsupported AST node type: {type(node)}")
+
     def synthesize(self, spss_ast: ASTNode, expected_type: DateType) -> str:
 
         visitor = SPSSASTVisitor()
         visitor.visit(spss_ast)
+
+        first_expression = self._synthesize_full_ast(spss_ast, expected_type)
+        print(f"First synthesized expression: {first_expression}")
         
         extracted_params = visitor.params 
         spss_functions = visitor.functions
@@ -63,7 +129,7 @@ class ContextAwareSynthesizer:
         #     print(param)
 
         # TODO: only for date parameters, we need to handle other types of parameters as well
-        if len(extracted_params) == 1 and len(pyspark_functions) == 0:
+        if len(extracted_params) == 1:
             print(extracted_params[0])
             raw_param = extracted_params[0]
             decoded_spec = self.decoder.decode(raw_param)

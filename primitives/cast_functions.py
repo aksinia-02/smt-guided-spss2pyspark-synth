@@ -64,7 +64,7 @@ class CastFunctionRegistry(BasePrimitiveRegistry):
         )
         self.add_primitive(name, return_type, arg_types, category, semantics, pyspark_str, python_eval=None, func=True)
 
-        ## Int to String any format
+        ## Int to String any format #TODO add another casting for any format
         name = f"cast_from_int_to_string_any_format"
         return_type = PrimitiveType.TYPE_STRING
         arg_types = [(PrimitiveType.TYPE_INT, True)]
