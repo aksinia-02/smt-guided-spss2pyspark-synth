@@ -5,6 +5,8 @@ class PrimitiveType(Enum):
     TYPE_INT = "int"
     TYPE_STRING = "str"
     TYPE_DATE = "date"
+    TYPE_BOOLEAN = "bool"
+    TYPE_ANY = "any"
 
     def __str__(self) -> str:
         return self.value

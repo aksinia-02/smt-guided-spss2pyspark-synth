@@ -64,22 +64,6 @@ class CastFunctionRegistry(BasePrimitiveRegistry):
         )
         self.add_primitive(name, return_type, arg_types, category, semantics, pyspark_str, python_eval=None, func=True)
 
-        ## Int to String any format #TODO add another casting for any format
-        name = f"cast_from_int_to_string_any_format"
-        return_type = PrimitiveType.TYPE_STRING
-        arg_types = [(PrimitiveType.TYPE_INT, True)]
-        category = Category.CAST_TYPE
-
-        pyspark_str = f"{{0}}.cast(t.StringType())"
-
-        semantics = FuncSemantics(
-            name=f"cast_from_int_to_string_any_format",
-            target_type=PrimitiveType.TYPE_STRING,
-            import_type=PrimitiveType.TYPE_INT,
-            weight=1000
-        )
-        self.add_primitive(name, return_type, arg_types, category, semantics, pyspark_str, python_eval=None, func=True)
-
         ## String to Date
         name = f"cast_from_string_to_date"
         return_type = DateType.TYPE_DATE
@@ -137,6 +121,37 @@ class CastFunctionRegistry(BasePrimitiveRegistry):
             name=f"cast_from_date_to_int",
             target_type=DateType.TYPE_INT,
             import_type=DateType.TYPE_DATE,
+            weight=1000
+        )
+        self.add_primitive(name, return_type, arg_types, category, semantics, pyspark_str, python_eval=None, func=True)
+
+        ## Int to String any format #TODO add another casting for any format
+        name = f"to_string"
+        return_type = PrimitiveType.TYPE_STRING
+        arg_types = [(PrimitiveType.TYPE_INT, True)]
+        category = Category.CAST_TYPE
+
+        pyspark_str = f"{{0}}.cast(t.StringType())"
+
+        semantics = FuncSemantics(
+            name=f"to_string",
+            target_type=PrimitiveType.TYPE_STRING,
+            import_type=PrimitiveType.TYPE_INT,
+            weight=1000
+        )
+        self.add_primitive(name, return_type, arg_types, category, semantics, pyspark_str, python_eval=None, func=True)
+
+        name = f"to_integer"
+        return_type = PrimitiveType.TYPE_INT
+        arg_types = [(PrimitiveType.TYPE_ANY, True)]
+        category = Category.CAST_TYPE
+
+        pyspark_str = f"{{0}}.cast(t.IntegerType())"
+
+        semantics = FuncSemantics(
+            name=f"to_integer",
+            target_type=PrimitiveType.TYPE_INT,
+            import_type=PrimitiveType.TYPE_ANY,
             weight=1000
         )
         self.add_primitive(name, return_type, arg_types, category, semantics, pyspark_str, python_eval=None, func=True)

@@ -30,6 +30,9 @@ class MasterPrimitiveRegistry:
         for func in self.string_functions:
             if func.name == name:
                 return func
+        for func in self.cast_functions:
+            if func.name == name:
+                return func
         print(f"Function '{name}' not found in the registered functions.")
         return None
 

@@ -28,6 +28,13 @@ class SPSSASTVisitor:
             self.visit(node.right)
 
 
+SPSS_TO_PYSPARK_FUNCTION_MAP = {
+    "startstring": "F.substring",
+    "endstring": "F.substring",
+    "concat": "F.concat",
+    "+": "F.concat"
+}
+
 class ContextAwareSynthesizer:
     def __init__(self, decoder, semantic_matcher):
         self.decoder = decoder
@@ -108,20 +115,24 @@ class ContextAwareSynthesizer:
 
         first_expression = self._synthesize_full_ast(spss_ast, expected_type)
         print(f"First synthesized expression: {first_expression}")
-
         
         extracted_params = visitor.params 
         spss_functions = visitor.functions
 
         
         # TODO rewite functions mapping
-        pyspark_functions = []
+        pyspark_functions = [
+            SPSS_TO_PYSPARK_FUNCTION_MAP[fn] 
+            for fn in spss_functions 
+            if fn in SPSS_TO_PYSPARK_FUNCTION_MAP
+        ]
 
         for param in pyspark_functions:
             print(param)
         
         for param in extracted_params:
             print(param)
+        return
 
         # TODO: only for date parameters, we need to handle other types of parameters as well
         if len(extracted_params) == 1:

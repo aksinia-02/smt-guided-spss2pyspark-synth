@@ -37,3 +37,9 @@ class StringSemantics(BaseSemantics):
     import_type: Optional[DateType] = None
     pos_flag: int = 0 # 0: no position, substring, 1: prefix, 2: suffix 
     weight: int = 1000
+
+@dataclass
+class LiteralSemantics(BaseSemantics):
+    """Semantics specific to literal values."""
+    value: Optional[str] = None
+    weight: int = 0
