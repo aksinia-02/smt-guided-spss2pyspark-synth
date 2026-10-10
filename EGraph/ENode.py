@@ -12,3 +12,7 @@ class ENode:
 
     def __repr__(self):
         return f"ENode(op={self.op.name}, children={self.children})"
+
+    def get_semantic(self, params: List[Primitive]):
+
+        return self.op.get_semantic(params)

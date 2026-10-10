@@ -7,7 +7,7 @@ from enums.smt_types import DateType, DateUnit, PrimitiveType
 class BaseSemantics(ABC):
     """Abstract parent class for all semantics objects."""
     name: Optional[str]
-    target_type: Optional[DateType]  # e.g. TYPE_DATE, TYPE_INT_YM, TYPE_INT
+    target_type: Optional[PrimitiveType]  # e.g. TYPE_DATE, TYPE_INT_YM, TYPE_INT
 
     def __repr__(self) -> str:
         """Custom repr that prints only fields with non-None values."""
@@ -43,3 +43,4 @@ class LiteralSemantics(BaseSemantics):
     """Semantics specific to literal values."""
     value: Optional[str] = None
     weight: int = 0
+    column_flag: bool = False  # True if the literal represents a column name, False otherwise

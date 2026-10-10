@@ -1,7 +1,9 @@
-from typing import Dict, Set
+from typing import Dict, Set, Tuple
 
 from EGraph.ENode import ENode
 from EGraph.UnionFind import UnionFind
+
+from enums.smt_types import PrimitiveType
 
 # Example of execution:
 # For expression (x + 0) * y
@@ -13,12 +15,19 @@ from EGraph.UnionFind import UnionFind
 
 # Merge of 0:x and 3:x + 0 -> root1 = 0, root2 = 3, new_root = 3, old_root = 0
 # self.M[new_root] = {ENode(op=Primitive.ADD, children=(0, 1)), ENode(op=Primitive.VAR, children=())}
+
+SemanticSpec = Tuple[PrimitiveType, str]
+
 class EGraph:
     def __init__(self):
         self.U = UnionFind()
         self.H: Dict[ENode, int] = {} # check if an ENode already exists in the graph and get its EClass ID
         self.M: Dict[int, Set[ENode]] = {} # mapps EClass IDs to their corresponding ENode sets
         self.class_data: Dict[int, dict] = {} # metadata for each EClass
+
+        self.S: Dict[int, SemanticSpec] # mapps EClass IDs to extracted semantic
+
+        self.len_nodes = 0
 
     # after merging two EClasses, we need to update the ENode children to their canonical representatives
     # replaces every child id with its leader id in the ENode children
@@ -38,6 +47,7 @@ class EGraph:
         self.H[node] = eclass_id
         self.M[eclass_id] = {node}
         self.class_data[eclass_id] = {"type": None, "score": float("inf")}
+        self.len_nodes += 1
         return eclass_id
 
     def merge(self, id1: int, id2: int) -> int:
@@ -53,3 +63,18 @@ class EGraph:
         self.M[new_root].update(self.M[old_root])
         del self.M[old_root]
         return new_root
+
+
+    def fill_init_semantic(self):
+        #TODO make assertion
+        for eclass_id, enodes in list(self.M.items()):
+            for enode in enodes:
+                children = []
+                for child_id in enode.children:
+                    child = self.M[child_id]
+                    children.append(child)
+                evaluation = enode.get_semantic(children)
+                print(evaluation)
+
+    def __repr__(self):
+        return f"EGraph(UnionFind={self.U}, H={self.H}, M={self.M})"

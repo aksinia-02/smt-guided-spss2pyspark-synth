@@ -47,8 +47,12 @@ class ContextAwareSynthesizer:
                 if candidates:
                     best_primitive, _ = candidates[0]
                     if decoded_spec.amount is not None and best_primitive.arg_types:
-                        return best_primitive.to_pyspark([str(decoded_spec.amount)])
-                    return best_primitive.to_pyspark([])
+                        expr = f"{best_primitive.to_pyspark([str(decoded_spec.amount)])}"
+                        print(f"Expression: {expr}")
+                        return expr
+                    expr = f"{best_primitive.to_pyspark([])}"
+                    print(f"Expression: {expr}")
+                    return expr
             except Exception:
                 print( f"Failed to decode or match parameter: {node.name}. Falling back to direct column reference.")
             

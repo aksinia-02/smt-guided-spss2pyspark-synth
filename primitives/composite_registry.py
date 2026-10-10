@@ -1,8 +1,9 @@
 from dataclasses import dataclass
 from typing import List
-from enums.smt_types import DateType
+from enums.smt_types import DateType, PrimitiveType
+from enums.categories import Category
 
-from .Semantics import DateSemantics, FuncSemantics
+from .Semantics import DateSemantics, FuncSemantics, BaseSemantics, LiteralSemantics
 from .Primitive import Primitive
 from .date_primitives import DatePrimitiveRegistry
 from .cast_functions import CastFunctionRegistry
@@ -75,3 +76,41 @@ class MasterPrimitiveRegistry:
         """
         for primitive in primitives:
             print(str(primitive) + "\n")
+
+    def get_plus_function(self, type: PrimitiveType) -> Primitive:
+        """
+        Returns the plus function for the specified type.
+        """
+        if type == PrimitiveType.TYPE_STRING:
+            return self.get_function_by_name("concat_ws")
+        return None
+
+    # type is not None if column is given
+    def return_primitive_for_literal(self, literal: str, type: PrimitiveType = None) -> Primitive:
+
+        column_flag=False #TODO: Determine if this should be True or False based on the context
+
+        if not column_flag:
+            determined_type = PrimitiveType.TYPE_STRING
+            try:
+                int(literal)
+                determined_type = PrimitiveType.TYPE_INT
+            except ValueError:
+                pass
+
+        final_type = type if column_flag else determined_type
+
+        name = f"{literal}"
+        return_type = final_type
+        arg_types = []
+        category = Category.LITERAL
+
+        pyspark_str = f"{literal}"
+
+        semantics = LiteralSemantics(
+            name=f"{literal}",
+            target_type=PrimitiveType.TYPE_STRING,
+            column_flag=column_flag
+        )
+
+        return Primitive(name, return_type, arg_types, category, semantics, pyspark_str, python_eval=None)
