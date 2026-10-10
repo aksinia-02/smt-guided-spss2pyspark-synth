@@ -65,7 +65,7 @@ class StringFunctionRegistry(BasePrimitiveRegistry):
         category = Category.STRING_FUNCTION
 
         pyspark_str = f"F.concat_ws({{0}}, {{1}}, {{2}})"
-        python_eval = lambda args, _: args[0].join(args[1:]) if len(args) >= 2 else None
+        python_eval = lambda args, _: "".join(str(x) for x in args)
         #TODO: For multiple arguments
         #F.concat_ws("", F.col("a"), F.col("b"), F.col("c"))
         semantics = FuncSemantics(

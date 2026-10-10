@@ -109,7 +109,7 @@ class MasterPrimitiveRegistry:
 
         semantics = LiteralSemantics(
             name=f"{literal}",
-            target_type=PrimitiveType.TYPE_STRING,
+            target_type=final_type,
             column_flag=column_flag
         )
 

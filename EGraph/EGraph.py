@@ -25,7 +25,7 @@ class EGraph:
         self.M: Dict[int, Set[ENode]] = {} # mapps EClass IDs to their corresponding ENode sets
         self.class_data: Dict[int, dict] = {} # metadata for each EClass
 
-        self.S: Dict[int, SemanticSpec] # mapps EClass IDs to extracted semantic
+        self.S: Dict[int, SemanticSpec] = {}# mapps EClass IDs to extracted semantic
 
         self.len_nodes = 0
 
@@ -70,11 +70,13 @@ class EGraph:
         for eclass_id, enodes in list(self.M.items()):
             for enode in enodes:
                 children = []
+                print(enode)
                 for child_id in enode.children:
-                    child = self.M[child_id]
-                    children.append(child)
+                    child_sem = self.S[child_id]
+                    children.append(child_sem)
                 evaluation = enode.get_semantic(children)
                 print(evaluation)
+                self.S[eclass_id] = evaluation
 
     def __repr__(self):
         return f"EGraph(UnionFind={self.U}, H={self.H}, M={self.M})"

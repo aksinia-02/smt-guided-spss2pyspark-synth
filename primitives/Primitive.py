@@ -23,8 +23,6 @@ class Primitive:
     to_pyspark: Callable[[List[str]], str]
     python_eval: Optional[Callable[[List[Any], Any], Any]] = None
 
-    evaluated_value: Optional[Any] = None  # Store the evaluated value of the primitive
-
     def __hash__(self):
         return hash(self.name)
 
@@ -36,10 +34,7 @@ class Primitive:
     def __repr__(self):
         return f"Primitive(name={self.name}, \nreturn_type={self.return_type}, \narg_types={self.arg_types}, \ncategory={self.category}, \nsemantics={self.semantics})"
 
-    def get_semantic(self, params: List[Primitive]):
-
-        if self.evaluated_value is not None:
-            self.evaluated_value = self.evaluated_value
+    def get_semantic(self, params: List[Tuple[PrimitiveType, str]]):
 
         if isinstance(self.semantics, DateSemantics):
 
@@ -49,24 +44,31 @@ class Primitive:
             D = DatesNamespace(today_int)
 
             if len(params) > 0:
-                val = next(iter(params[0]))
-                print(f"Parameter: {val}")
-                expr = f"{self.to_pyspark([str(val.get_semantic([]))])}"
+                expr = f"{self.to_pyspark([str(params[0][1])])}"
             else:
                 expr = f"{self.to_pyspark([])}"
 
             print(f"Expression: {expr}")
 
         
-            self.evaluated_value = eval(expr, {"D": D})
+            return (self.return_type.primitive_type, f"{eval(expr, {"D": D})}")
 
         elif isinstance(self.semantics, FuncSemantics):
-            eval_children = [next(iter(child)).get_semantic([]) for child in params]
-            print(f"Evaluated children: {eval_children}")
+            eval_children = [child[1] for child in params]
+            print(f'Evaluated children: {eval_children}')
             if self.python_eval is not None:
-                self.evaluated_value = eval(self.python_eval)
+                try:
+                    result = self.python_eval(eval_children, {})
+                except (TypeError, ValueError, IndexError):
+                    eval_children.reverse()
+                    result = self.python_eval(eval_children, {})
+
+                print(result)
+
+                return (self.semantics.target_type, result)
 
         elif isinstance(self.semantics, BaseSemantics):
-            return int(self.semantics.name) if self.semantics.target_type == PrimitiveType.TYPE_INT else self.semantics.name
+            print(self.semantics.target_type)
+            return (self.return_type, int(self.semantics.name)) if self.semantics.target_type == PrimitiveType.TYPE_INT else (self.semantics.target_type, self.semantics.name)
 
-        return self.evaluated_value
+        return None

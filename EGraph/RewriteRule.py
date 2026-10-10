@@ -2,17 +2,6 @@ from EGraph import EGraph, ENode
 
 class RewriteRule:
 
-    def fill_init_semanctic(self, egraph: EGraph):
-
-        for eclass_id, enodes in list(egraph.M.items()):
-            for enode in enodes:
-                children = []
-                for child_id in enode.children:
-                    child = egraph.M[child_id]
-                    children.append(child)
-                evaluation = enode.get_semantic(children)
-                print(evaluation)
-
     def apply(self, egraph: EGraph, primitives) -> bool:
         changed = False
 
