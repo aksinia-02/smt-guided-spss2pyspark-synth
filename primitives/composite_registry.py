@@ -42,12 +42,6 @@ class MasterPrimitiveRegistry:
         """
         Returns a list of functions that match the required import_type.
         """
-        # print('__________-')
-        # print(target_type)
-        # print('__________-')
-        # for func in self.cast_functions:
-        #     print(func.semantics.target_type)
-        # print('__________-')
         return [
             func for func in functions
             if isinstance(func.semantics, FuncSemantics) and
@@ -58,17 +52,17 @@ class MasterPrimitiveRegistry:
         """
         Returns a list of functions that have the specified target_type.
         """
-        # print('__________-')
-        # print(target_type)
-        # print('__________-')
-        # for func in self.cast_functions:
-        #     print(func.semantics.target_type)
-        # print('__________-')
         return [
             func for func in self.cast_functions
             if isinstance(func.semantics, FuncSemantics) and
                 target_type == func.semantics.target_type
         ]
+
+    def get_functions_with_specified_types(self, import_type: DateType, target_type: PrimitiveType):
+
+        funcs = self.get_functions_with_specified_target_type(target_type)
+        return self.get_functions_with_specified_import_type(import_type, funcs)
+        
 
     def print_premitives(self, primitives: List[Primitive]) -> None:
         """
@@ -114,3 +108,20 @@ class MasterPrimitiveRegistry:
         )
 
         return Primitive(name, return_type, arg_types, category, semantics, pyspark_str, python_eval=None)
+
+
+    def match_type(self, return_type: DateType, expected_type: PrimitiveType, default_string: bool = True):
+        if return_type.eq_exact(expected_type):
+            print(f"\nCandidate matches expected type")
+            return None
+        else:
+            print(f"\nCandidate does not match expected type. Looking for cast functions to convert {return_type} to {expected_type}.")
+            matching_casts = self.get_functions_with_specified_types(return_type, expected_type)
+
+            if default_string:
+                matching_casts = [
+                    func for func in matching_casts
+                    if isinstance(func.return_type, PrimitiveType)
+                ]
+
+            return matching_casts

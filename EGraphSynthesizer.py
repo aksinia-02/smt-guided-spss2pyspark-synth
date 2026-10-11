@@ -57,19 +57,17 @@ class EGraphSynthesizer:
 
             candidates = matcher.filter_candidates(decoded_spec, primitives.date_primitives)
 
-            param_eclass = None
-            for candidate, _ in candidates:
-                cand_enode = ENode(op=candidate, children=(child_id,) if child_id is not None else ())
-                cand_id = egraph.add(cand_enode)
-                if param_eclass is None:
-                    param_eclass = cand_id
-                # if decoded_spec.amount is not None and candidate.arg_types:
-                #     core_expr = candidate.to_pyspark([str(decoded_spec.amount)])
-                # else:
-                #     core_expr = candidate.to_pyspark([])
-                # print(core_expr)
-            
-            return egraph.U.find(param_eclass)
+            cand_enode = ENode(op=candidates[0][0], children=(child_id,) if child_id is not None else ())
+            cand_id = egraph.add(cand_enode)
+
+            cast_func = self.primitives.match_type(candidates[0][0].return_type, expected_type)
+
+            egraph.add(ENode(op=cast_func[0], children=(cand_id,)))
+            print(egraph)
+            # print(cand_id)
+
+            return egraph.add(ENode(op=cast_func[0], children=(cand_id,)))
+            #return egraph.U.find(cand_id)
 
         elif isinstance(node, LiteralNode):
             literal_primitive = self.primitives.return_primitive_for_literal(node.value)

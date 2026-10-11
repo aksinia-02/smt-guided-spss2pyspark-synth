@@ -51,7 +51,7 @@ class Primitive:
             print(f"Expression: {expr}")
 
         
-            return (self.return_type.primitive_type, f"{eval(expr, {"D": D})}")
+            return (self.return_type.primitive_type, eval(expr, {"D": D}))
 
         elif isinstance(self.semantics, FuncSemantics):
             eval_children = [child[1] for child in params]
