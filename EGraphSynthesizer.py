@@ -30,9 +30,8 @@ class EGraphSynthesizer:
         print(egraph)
 
         egraph.fill_init_semantic()
-        return
 
-        rewriter = RewriteRule()
+        rewriter = RewriteRule(self.primitives)
         rewriter.apply(egraph, self.primitives)
         return
         for _ in range(max_iterations):
@@ -53,7 +52,7 @@ class EGraphSynthesizer:
 
             child_id = None
             if decoded_spec.amount is not None:
-                child_id = egraph.add(ENode(op=self.primitives.return_primitive_for_literal(decoded_spec.amount)))
+                child_id = egraph.add(ENode(op=self.primitives.return_primitive_for_literal(decoded_spec.amount), children=()))
 
             candidates = matcher.filter_candidates(decoded_spec, primitives.date_primitives)
 
@@ -63,7 +62,6 @@ class EGraphSynthesizer:
             cast_func = self.primitives.match_type(candidates[0][0].return_type, expected_type)
 
             egraph.add(ENode(op=cast_func[0], children=(cand_id,)))
-            print(egraph)
             # print(cand_id)
 
             return egraph.add(ENode(op=cast_func[0], children=(cand_id,)))

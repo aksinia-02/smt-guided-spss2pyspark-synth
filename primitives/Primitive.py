@@ -34,24 +34,37 @@ class Primitive:
     def __repr__(self):
         return f"Primitive(name={self.name}, \nreturn_type={self.return_type}, \narg_types={self.arg_types}, \ncategory={self.category}, \nsemantics={self.semantics})"
 
+
+    def get_semantic_prim(self, args):
+
+        return_type = self.return_type.primitive_type if isinstance(self.return_type, DateType) else self.return_type
+
+        return (return_type, self.python_eval(args, {}))
+
     def get_semantic(self, params: List[Tuple[PrimitiveType, str]]):
 
         if isinstance(self.semantics, DateSemantics):
 
-            today = date.today()
-            today_int = today.year * 10000 + today.month * 100 + today.day
+            eval_children = [child[1] for child in params]
+            print(f'Evaluated children: {eval_children}')
+            if self.python_eval is not None:
+                result = self.python_eval(eval_children, {})
+                return (self.return_type.primitive_type, result)
+
+            # today = date.today()
+            # today_int = today.year * 10000 + today.month * 100 + today.day
             
-            D = DatesNamespace(today_int)
+            # D = DatesNamespace(today_int)
 
-            if len(params) > 0:
-                expr = f"{self.to_pyspark([str(params[0][1])])}"
-            else:
-                expr = f"{self.to_pyspark([])}"
+            # if len(params) > 0:
+            #     expr = f"{self.to_pyspark([str(params[0][1])])}"
+            # else:
+            #     expr = f"{self.to_pyspark([])}"
 
-            print(f"Expression: {expr}")
+            # print(f"Expression: {expr}")
 
         
-            return (self.return_type.primitive_type, eval(expr, {"D": D}))
+            # return (self.return_type.primitive_type, eval(expr, {"D": D}))
 
         elif isinstance(self.semantics, FuncSemantics):
             eval_children = [child[1] for child in params]
@@ -62,8 +75,6 @@ class Primitive:
                 except (TypeError, ValueError, IndexError):
                     eval_children.reverse()
                     result = self.python_eval(eval_children, {})
-
-                print(result)
 
                 return (self.semantics.target_type, result)
 

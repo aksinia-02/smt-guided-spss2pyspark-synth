@@ -10,9 +10,11 @@ from primitives.Primitive import Primitive
 class ENode:
     op: Primitive # The operator, parameter or function represented by this node
     children: Tuple[int, ...] = () # The children of this node, represented by their EClass IDs
+    #level: int
 
     def __repr__(self):
         return f"ENode(op={self.op.name}, children={self.children})"
+        #, level={self.level})"
 
     def get_semantic(self, params: List[Tuple[PrimitiveType, str]]):
 

@@ -1,3 +1,5 @@
+# Author: WLN3MIP
+
 from dataclasses import dataclass, field
 from datetime import date
 from dateutil.relativedelta import relativedelta
@@ -5,17 +7,38 @@ from dateutil.relativedelta import relativedelta
 
 @dataclass
 class DatesNamespace:
-    input_date: int
+    # Get business date
+    """
+    Parameters
+    ----------
+    input_date : str
+        Input date in isoformat: 'YYYYMMDD' or 'YYYY-MM-DD'
+    offset : int, optional
+        Offset in days; default is -1,
+    Returns
+    -------
+    date : date | str | int
+        Dates in isoformat: 'YYYYMMDD' or 'YYYY-MM-DD' or as int
+
+    Business date by default is set to one day before (offset=-1) the input date, which by default is expected to be given as today.
+    To get exactly the input date, set offset=0.
+
+    ## Business date by default is set to match the input date.
+    ## To get a day before or after the input date, change the to offset=-1 for previous day or offset=1 for next day.
+    """
+    input_date: str | int
+    offset: int = -1   # day given
 
     as_date: "_ShowDate" = field(init=False)
     as_int: "_ShowInt" = field(init=False)
     as_str: "_ShowStr" = field(init=False)
-    as_strYM: "_ShowStrYM" = field(init=False)
+    as_intYM: "_ShowIntYM" = field(init=False)
 
     def __post_init__(self):
-        if len(str(self.input_date)) != 8 or not str(self.input_date).isdigit():
-            raise ValueError("Business date must be an integer in YYYYMMDD format.")
-        self._BD = date.fromisoformat(str(self.input_date))
+        try:
+            self._BD = date.fromisoformat(str(self.input_date)) + relativedelta(days=self.offset)
+        except ValueError:
+            print("Business date must be in isoformat: 'YYYYMMDD' or 'YYYY-MM-DD'")
         self._month_start = self._BD + relativedelta(day=1)
         self._month_end = self._BD + relativedelta(day=31)
         self._year_start = self._BD + relativedelta(day=1, month=1)
@@ -23,7 +46,7 @@ class DatesNamespace:
 
         # next:
         self._plus_days = {k: self._BD + relativedelta(days=k) for k in range(1, 11)}
-        self._plus_week = self._BD + relativedelta(weeks=1)
+        self._plus_weeks = {k: self._BD + relativedelta(weeks=k) for k in range(1, 5)}
         self._plus_year = self._BD + relativedelta(years=1)
         self._plus_months = {
             k: self._BD + relativedelta(months=k) for k in range(1, 19)
@@ -56,7 +79,7 @@ class DatesNamespace:
         self.as_date = self._ShowDate(self)
         self.as_int = self._ShowInt(self)
         self.as_str = self._ShowStr(self)
-        self.as_strYM = self._ShowStrYM(self)
+        self.as_intYM = self._ShowIntYM(self)
 
     # Set helpers
     def _validate_day_index(self, n: int) -> int:
@@ -76,6 +99,9 @@ class DatesNamespace:
 
     def _get_plus_day(self, n: int) -> date:
         return self._plus_days[self._validate_day_index(n)]
+
+    def _get_plus_week(self, n: int) -> date:
+        return self._plus_weeks[self._validate_week_index(n)]
 
     def _get_plus_month(self, n: int) -> date:
         return self._plus_months[self._validate_month_index(n)]
@@ -130,9 +156,8 @@ class DatesNamespace:
         def plus_day(self, n: int) -> date:
             return self._dates._get_plus_day(n)
 
-        @property
-        def plus_week(self):
-            return self._dates._plus_week
+        def plus_week(self, n: int):
+            return self._dates._get_plus_week(n)
 
         def plus_month(self, n: int) -> date:
             return self._dates._get_plus_month(n)
@@ -252,9 +277,8 @@ class DatesNamespace:
         def plus_day(self, n: int) -> date:
             return self._to_int(self._dates._get_plus_day(n))
 
-        @property
-        def plus_week(self):
-            return self._to_int(self._dates._plus_week)
+        def plus_week(self, n: int):
+            return self._dates._get_plus_week(n)
 
         def plus_month(self, n: int):
             return self._to_int(self._dates._get_plus_month(n))
@@ -379,9 +403,8 @@ class DatesNamespace:
         def plus_day(self, n: int) -> date:
             return self._to_str(self._dates._get_plus_day(n))
 
-        @property
-        def plus_week(self):
-            return self._to_str(self._dates._plus_week)
+        def plus_week(self, n: int):
+            return self._dates._get_plus_week(n)
 
         def plus_month(self, n: int):
             return self._to_str(self._dates._get_plus_month(n))
@@ -469,23 +492,23 @@ class DatesNamespace:
         def year_ago(self):
             return self.minus_year
 
-    class _ShowStrYM:
+    class _ShowIntYM:
         def __init__(self, dates):
             self._dates = dates
 
-        def _to_str(self, d) -> str:
-            return d.strftime("%Y%m")
+        def _to_int(self, d) -> int:
+            return int(d.strftime("%Y%m"))
 
         def minus_month(self, n: int):
-            return self._to_str(self._dates._get_minus_month(n))
+            return self._to_int(self._dates._get_minus_month(n))
 
         def plus_month(self, n: int):
-            return self._to_str(self._dates._get_plus_month(n))
+            return self._to_int(self._dates._get_plus_month(n))
 
         ### Aliases ###
         @property
         def current_month(self):
-            return self._to_str(self._dates._BD)
+            return self._to_int(self._dates._BD)
 
         @property
         def next_month(self):

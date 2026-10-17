@@ -115,7 +115,7 @@ class MasterPrimitiveRegistry:
             print(f"\nCandidate matches expected type")
             return None
         else:
-            print(f"\nCandidate does not match expected type. Looking for cast functions to convert {return_type} to {expected_type}.")
+            #print(f"\nCandidate does not match expected type. Looking for cast functions to convert {return_type} to {expected_type}.")
             matching_casts = self.get_functions_with_specified_types(return_type, expected_type)
 
             if default_string:
@@ -125,3 +125,48 @@ class MasterPrimitiveRegistry:
                 ]
 
             return matching_casts
+
+    def find_semantic_over_date_primitives(self, semantic, children):
+
+        for date_prim in self.date_primitives:
+
+            param_flag = False
+            if len(date_prim.arg_types) == 0:
+                result = date_prim.get_semantic_prim([])
+            else:
+                #TODO extend for multiply params
+                # print('To evaluate')
+                # print(date_prim)
+                param_flag = True
+                result = date_prim.get_semantic_prim(children)
+            #print(f'result: {result}')
+
+            if result[0] == semantic[0]:
+
+                if result == semantic:
+                    # print('FOUND')
+                    # print(result)
+                    # print('FOR')
+                    # print(semantic)
+                    return [date_prim], param_flag
+
+            else:
+                cast_funcs = self.match_type(result[0], semantic[0])
+                #print(len(cast_funcs))
+
+                for cast_func in cast_funcs:
+                    cast_result = cast_func.get_semantic_prim([result[1]])
+                    #print(f'cast result: {cast_result}')
+
+                    if cast_result == semantic:
+                        # print('FOUND')
+                        # print(cast_result)
+                        # print('FOR')
+                        # print(semantic)
+
+                        return [date_prim, cast_func], param_flag
+                    # print('11111111111111')
+                    # print(result)
+                    # if semantic == result:
+                    #     print('FOund')
+        return [], param_flag

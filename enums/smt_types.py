@@ -28,12 +28,15 @@ class PrimitiveType(Enum):
             return self.value == other.primitive_type.value
         return super().__eq__(other)
 
+    def eq_exact(self, other) -> bool:
+        return self.value == other.value
+
 
 class DateType(Enum):
     TYPE_DATE = ("date", PrimitiveType.TYPE_DATE, "yyyy-MM-dd", 30)
     TYPE_STRING = ("str", PrimitiveType.TYPE_STRING, "yyyy-MM-dd", 30)
     TYPE_INT = ("int", PrimitiveType.TYPE_INT, "yyyyMMdd", 30)
-    TYPE_INT_YM = ("strYM", PrimitiveType.TYPE_INT, "yyyyMM", 15)
+    TYPE_INT_YM = ("intYM", PrimitiveType.TYPE_INT, "yyyyMM", 15)
     TYPE_YEAR = ("year", PrimitiveType.TYPE_INT, "yyyy", 5)
     TYPE_MONTH = ("month", PrimitiveType.TYPE_INT, "MM", 3)
     TYPE_DAY = ("day", PrimitiveType.TYPE_INT, "dd", 2)

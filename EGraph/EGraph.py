@@ -5,6 +5,8 @@ from EGraph.UnionFind import UnionFind
 
 from enums.smt_types import PrimitiveType
 
+from primitives.Semantics import LiteralSemantics, DateSemantics
+
 # Example of execution:
 # For expression (x + 0) * y
 # UnionFind: {0: 0, 1: 1, 2: 2}
@@ -78,5 +80,45 @@ class EGraph:
                 print(evaluation)
                 self.S[eclass_id] = evaluation
 
+    def get_date_semantic_children_values(self, eclass_id: int, parent_date: bool = False):
+        canon_class_id = self.U.find(eclass_id)
+        enodes = self.M.get(canon_class_id, set())
+
+        if not enodes:
+            return None
+
+        children_values = []
+        children_ids = []
+        for enode in enodes:
+
+            if len(enode.children) == 0 and parent_date:
+                val = self.S[canon_class_id]
+                if val not in children_values:
+                    children_values.append(val[1])
+                    children_ids.append(canon_class_id)
+            else:
+
+                for child_eclass_id in enode.children:
+                    canon_child_id = self.U.find(child_eclass_id)
+                    child_date = isinstance(enode.op.semantics, DateSemantics)
+
+                    res_sem, res_id = self.get_date_semantic_children_values(canon_child_id, child_date)
+
+                    if isinstance(res_sem,  (list, tuple)):
+                        for sem_item in res_sem:
+                            if sem_item not in children_values:
+                                children_values.append(sem_item)
+
+                        for id_item in res_id:
+                            if id_item not in children_ids:
+                                children_ids.append(id_item)
+                    elif res_sem is not None and res_sem not in children_values:
+                        children_values.append(res_sem)
+                        if res_id is not None and res_id not in children_ids:
+                            children_ids.append(res_id)
+
+            
+        return children_values, children_ids
+
     def __repr__(self):
-        return f"EGraph(UnionFind={self.U}, H={self.H}, M={self.M})"
+        return f"EGraph(\n\nUnionFind={self.U}, \n\nH={self.H}, \n\nM={self.M}\n\n)"

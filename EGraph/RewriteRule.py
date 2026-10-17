@@ -1,26 +1,91 @@
-from EGraph import EGraph, ENode
+from EGraph import EGraph
+from EGraph.ENode import ENode
+
+from primitives.Semantics import LiteralSemantics, DateSemantics
+from primitives.composite_registry import MasterPrimitiveRegistry
+
+from enums.categories import Category
 
 class RewriteRule:
+    def __init__(self, primitives: MasterPrimitiveRegistry):
+        self.primitives = primitives
 
     def apply(self, egraph: EGraph, primitives) -> bool:
         changed = False
 
         for eclass_id, enodes in list(egraph.M.items()):
+            semantic = egraph.S[eclass_id]
+            print(next(iter(enodes)))
+
             for enode in enodes:
-                children = []
-                for child_id in enode.children:
-                    child = egraph.M[child_id]
-                    children.append(child)
-                evaluation = enode.get_semantic(children)
-                print(evaluation)
-        
-        # # Rule 1: Match endstring(2, startstring(6, X)) -> MonthComponent(X)
-        # changed |= self._apply_month_extraction(egraph, primitives)
-        
-        # # Rule 2: Match ISO Concat -> AsStr representation
-        # changed |= self._apply_iso_fusion(egraph, primitives)
+                if enode.op.category == Category.STRING_FUNCTION:
+
+                    children_sem, children_ids = egraph.get_date_semantic_children_values(eclass_id)
+                    print(f'Children: {children_sem}')
+                    print(children_ids)
+                    eq_prims, param_flag = self.primitives.find_semantic_over_date_primitives(semantic, children_sem)
+
+                    n = len(eq_prims)
+
+                    if n > 0:
+                        if param_flag:
+                            child_id = egraph.add(ENode(op=eq_prims[0], children=(children_ids[0],)))
+                        else:
+                            child_id = egraph.add(ENode(op=eq_prims[0], children=()))
+
+                        if n == 1:
+                            egraph.merge(eclass_id, child_id)
+                        else:
+                            cast_id = egraph.add(ENode(op=eq_prims[1], children=(child_id,)))
+                            egraph.merge(eclass_id, cast_id)
+
+        print(egraph)
+
+
         
         return changed
+
+    def find_equivalent(self, semantic, children):
+        print('---------------')
+
+        #TODO check that all children are date primitives and literals
+        #print(children)
+
+        eq_prims = self.primitives.find_semantic_over_date_primitives(semantic, children)
+        #print(f'found for {semantic} {eq_prims}')
+
+        return eq_prims
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
 
     def _apply_month_extraction(self, egraph: EGraph, primitives) -> bool:
         changed = False
