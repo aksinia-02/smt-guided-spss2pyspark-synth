@@ -65,29 +65,30 @@ class DatePrimitiveRegistry(BasePrimitiveRegistry):
             self.add_primitive(name, return_type, arg_types, category, semantics, pyspark_str, python_eval)
 
 
-        for direction in ["plus", "minus"]:
+        for type in [DateType.TYPE_YEAR, DateType.TYPE_MONTH, DateType.TYPE_DAY]:
+            for direction in ["plus", "minus"]:
 
-            plus_minus = "+" if direction == "plus" else "-"
-    
-            name = f"D.as_date.BD.{type.value} {plus_minus}"
-            return_type = DateType.TYPE_YEAR
-            arg_types = [(DateType.TYPE_INT, False)]
-            category = Category.DATE_NAMESPACE
-    
-            pyspark_str = f"D.as_date.BD.{DateType.TYPE_YEAR.value} {plus_minus} {{0}}"
-            python_eval = lambda args, _, t=type.value, d=direction: (
-                getattr(self.D.as_date.BD, t) + args[0] if d == "plus" else getattr(self.D.as_date.BD, t) - args[0]
-            )
-    
-            semantics = DateSemantics(
-                name=f"D.as_date.BD.{DateType.TYPE_YEAR.value} {plus_minus} {{0}}",
-                target_type=DateType.TYPE_YEAR,
-                direction=direction,
-                unit=None,
-                amount=None,
-                jump=None
-            )
-            self.add_primitive(name, return_type, arg_types, category, semantics, pyspark_str, python_eval)
+                plus_minus = "+" if direction == "plus" else "-"
+        
+                name = f"D.as_date.BD.{type.value} {plus_minus}"
+                return_type = type
+                arg_types = [(DateType.TYPE_INT, False)]
+                category = Category.DATE_NAMESPACE
+        
+                pyspark_str = f"(D.as_date.BD.{type.value} {plus_minus} {{0}})"
+                python_eval = lambda args, _, t=type.value, d=direction: (
+                    getattr(self.D.as_date.BD, t) + args[0] if d == "plus" else getattr(self.D.as_date.BD, t) - args[0]
+                )
+        
+                semantics = DateSemantics(
+                    name=f"D.as_date.BD.{type.value} {plus_minus} {{0}}",
+                    target_type=type,
+                    direction=direction,
+                    unit=None,
+                    amount=None,
+                    jump=None
+                )
+                self.add_primitive(name, return_type, arg_types, category, semantics, pyspark_str, python_eval)
 
 
 

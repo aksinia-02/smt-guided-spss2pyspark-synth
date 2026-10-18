@@ -1,7 +1,7 @@
 from EGraph.EGraph import EGraph
 from EGraph.EGraph import ENode
 from EGraph.RewriteRule import RewriteRule
-#from EGraph.EGraphExtractor import EGraphExtractor
+from EGraph.EGraphExtractor import EGraphExtractor
 
 from ContextAwareSynthesizer import SPSSASTVisitor
 
@@ -27,21 +27,24 @@ class EGraphSynthesizer:
         egraph = EGraph()
 
         root_id = self.ingest_spss_ast(egraph, spss_ast, self.decoder, self.matcher, self.primitives, expected_type)
+        egraph.root_id = root_id
+
         print(egraph)
 
-        egraph.fill_init_semantic()
+        #egraph.fill_init_semantic()
 
         rewriter = RewriteRule(self.primitives)
-        rewriter.apply(egraph, self.primitives)
-        return
         for _ in range(max_iterations):
+            print('new egraph')
+            print(egraph)
             if not rewriter.apply(egraph, self.primitives):
                 break
 
         extractor = EGraphExtractor(egraph, self.primitives)
-        result = extractor.extract(root_id, expected_type)
+        result = extractor.extract_best()
+        root_id = egraph.U.find(root_id)
 
-        return result.code
+        return result.get(root_id)
 
     def ingest_spss_ast(self, egraph: EGraph, node, decoder, matcher, primitives, expected_type) -> int:
         """Recursively populates the e-graph from an SPSS AST node."""

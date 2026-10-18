@@ -9,6 +9,7 @@ from .date_primitives import DatePrimitiveRegistry
 from .cast_functions import CastFunctionRegistry
 from .string_functions import StringFunctionRegistry
 
+from .base_registry import BasePrimitiveRegistry
 @dataclass
 class MasterPrimitiveRegistry:
     def __init__(self):
@@ -99,7 +100,7 @@ class MasterPrimitiveRegistry:
         arg_types = []
         category = Category.LITERAL
 
-        pyspark_str = f"{literal}"
+        pyspark_str = BasePrimitiveRegistry.make_pyspark_formatter(f"{literal}", arg_types)
 
         semantics = LiteralSemantics(
             name=f"{literal}",

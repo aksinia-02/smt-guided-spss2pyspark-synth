@@ -23,6 +23,7 @@ class DateSemantics(BaseSemantics):
     unit: Optional[DateUnit] = None     # DateUnit.DAY, MONTH, YEAR
     amount: Optional[int] = None       # Fixed amount or None if dynamic
     jump: Optional[str] = None         # "last month", "last year", "month_start", etc.
+    weight: int = 0
 
 
 @dataclass

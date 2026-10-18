@@ -14,6 +14,7 @@ class RewriteRule:
         changed = False
 
         for eclass_id, enodes in list(egraph.M.items()):
+            print(eclass_id)
             semantic = egraph.S[eclass_id]
             print(next(iter(enodes)))
 
@@ -28,6 +29,7 @@ class RewriteRule:
                     n = len(eq_prims)
 
                     if n > 0:
+                        changed = True
                         if param_flag:
                             child_id = egraph.add(ENode(op=eq_prims[0], children=(children_ids[0],)))
                         else:
@@ -44,15 +46,6 @@ class RewriteRule:
 
         
         return changed
-
-    def find_equivalent(self, semantic, children):
-        print('---------------')
-
-        #TODO check that all children are date primitives and literals
-        #print(children)
-
-        eq_prims = self.primitives.find_semantic_over_date_primitives(semantic, children)
-        #print(f'found for {semantic} {eq_prims}')
 
         return eq_prims
 

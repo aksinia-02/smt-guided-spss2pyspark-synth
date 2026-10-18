@@ -23,7 +23,7 @@ class ConditionsRegistry(BasePrimitiveRegistry):
             name=f"is_null",
             target_type=PrimitiveType.TYPE_BOOLEAN,
             import_type=PrimitiveType.TYPE_ANY,
-            weight=1000
+            weight=0
         )
         self.add_primitive(name, return_type, arg_types, category, semantics, pyspark_str, python_eval=None, func=True)
 
@@ -37,6 +37,6 @@ class ConditionsRegistry(BasePrimitiveRegistry):
             name=f"is_not_null",
             target_type=PrimitiveType.TYPE_BOOLEAN,
             import_type=PrimitiveType.TYPE_ANY,
-            weight=1000
+            weight=0
         )
         self.add_primitive(name, return_type, arg_types, category, semantics, pyspark_str, python_eval=None, func=True)

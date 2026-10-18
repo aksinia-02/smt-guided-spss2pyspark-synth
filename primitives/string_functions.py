@@ -19,8 +19,8 @@ class StringFunctionRegistry(BasePrimitiveRegistry):
         arg_types = [(PrimitiveType.TYPE_STRING, True), (PrimitiveType.TYPE_INT, False)]
         category = Category.STRING_FUNCTION
 
-        pyspark_str = f"F.substring({{0}}, 1, {{1}})"
-        python_eval = lambda args, _: args[0][:args[1]] if len(args) == 2 else None
+        pyspark_str = f"F.substring({{1}}, 1, {{0}})"
+        python_eval = lambda args, _: args[1][:args[0]] if len(args) == 2 else None
         semantics = FuncSemantics(
             name=f"startstring",
             target_type=PrimitiveType.TYPE_STRING,
@@ -34,8 +34,8 @@ class StringFunctionRegistry(BasePrimitiveRegistry):
         arg_types = [(PrimitiveType.TYPE_STRING, True), (PrimitiveType.TYPE_INT, False)]
         category = Category.STRING_FUNCTION
 
-        pyspark_str = f"F.substring({{0}}, -{{1}}, {{1}})"
-        python_eval = lambda args, _: args[0][-args[1]:] if len(args) == 2 else None
+        pyspark_str = f"F.substring({{1}}, -{{0}}, {{0}})"
+        python_eval = lambda args, _: args[1][-args[0]:] if len(args) == 2 else None
         semantics = FuncSemantics(
             name=f"endstring",
             target_type=PrimitiveType.TYPE_STRING,
@@ -64,7 +64,7 @@ class StringFunctionRegistry(BasePrimitiveRegistry):
         arg_types = [(PrimitiveType.TYPE_STRING, False), (PrimitiveType.TYPE_INT, True), (PrimitiveType.TYPE_INT, True)]
         category = Category.STRING_FUNCTION
 
-        pyspark_str = f"F.concat_ws({{0}}, {{1}}, {{2}})"
+        pyspark_str = f"F.concat_ws('', {{0}}, {{1}})"
         python_eval = lambda args, _: "".join(str(x) for x in args)
         #TODO: For multiple arguments
         #F.concat_ws("", F.col("a"), F.col("b"), F.col("c"))

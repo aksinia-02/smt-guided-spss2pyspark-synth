@@ -17,10 +17,10 @@ class BasePrimitiveRegistry(ABC):
 
     @abstractmethod
     def register_all(self) -> None:
-        """Subclasses override this to register their domain-specific functions/primitives."""
         pass
 
-    def make_pyspark_formatter(self, template: str, arg_specs: List[ArgSpec] = []) -> Callable[[List[str]], str]:
+    @classmethod
+    def make_pyspark_formatter(cls, template: str, arg_specs: List[ArgSpec] = []) -> Callable[[List[str]], str]:
         """
         Factory function that binds to a static string template immediately.
         Completely prevents late-binding loop variable bugs.
@@ -59,7 +59,7 @@ class BasePrimitiveRegistry(ABC):
             arg_types=arg_types,
             category=category,
             semantics=semantics,
-            to_pyspark=self.make_pyspark_formatter(pyspark_str, arg_types),
+            to_pyspark=BasePrimitiveRegistry.make_pyspark_formatter(pyspark_str, arg_types),
             python_eval=python_eval
         )
         self.primitives.append(primitive)

@@ -28,6 +28,9 @@ class EGraph:
         self.class_data: Dict[int, dict] = {} # metadata for each EClass
 
         self.S: Dict[int, SemanticSpec] = {}# mapps EClass IDs to extracted semantic
+        self.R: Dict[int, str] = {}
+
+        self.root_id: int
 
         self.len_nodes = 0
 
@@ -50,6 +53,10 @@ class EGraph:
         self.M[eclass_id] = {node}
         self.class_data[eclass_id] = {"type": None, "score": float("inf")}
         self.len_nodes += 1
+
+        self.fill_semanctic(eclass_id, node)
+        #self.fill_pyspark_repr(node)
+
         return eclass_id
 
     def merge(self, id1: int, id2: int) -> int:
@@ -65,6 +72,26 @@ class EGraph:
         self.M[new_root].update(self.M[old_root])
         del self.M[old_root]
         return new_root
+
+    def fill_semanctic(self, eclass_id: int, enode: ENode):
+
+        sem = self.S.get(eclass_id)
+
+        if sem is None:
+            children = []
+            for child_id in enode.children:
+                child_sem = self.S[child_id]
+                children.append(child_sem)
+            self.S[eclass_id] = enode.get_semantic(children)
+
+    # def fill_pyspark_repr(self, enode: ENode):
+
+    #     children = []
+    #     for child_id in enode.children:
+    #         child_repr = self.R[child_id]
+    #         children.append(child_repr)
+    #     self.R[]
+
 
 
     def fill_init_semantic(self):
