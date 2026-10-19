@@ -158,8 +158,9 @@ class MasterPrimitiveRegistry:
                 #TODO extend for multiply params
                 # print('To evaluate')
                 # print(date_prim)
-                param_flag = True
-                result = date_prim.get_semantic_prim(children)
+                if len(children) > 0:
+                    param_flag = True
+                    result = date_prim.get_semantic_prim(children)
             #print(f'result: {result}')
 
             if result[0] == semantic[0]:

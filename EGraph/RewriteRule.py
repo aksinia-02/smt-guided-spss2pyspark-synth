@@ -20,6 +20,7 @@ class RewriteRule:
 
             for enode in enodes:
                 if enode.op.category == Category.STRING_FUNCTION:
+                    print('Enter first rule')
 
                     children_sem, children_ids = egraph.get_date_semantic_children_values(eclass_id)
                     print(f'Children: {children_sem}')
@@ -42,13 +43,39 @@ class RewriteRule:
                             egraph.merge(eclass_id, cast_id)
 
                 if enode.op.category == Category.CAST_TYPE:
+                    print('Enter second rule')
 
                     child_id = enode.children[0]
                     child = next(iter(egraph.M.get(child_id)))
                     child_type = child.op.return_type
 
                     if child_type == enode.op.return_type:
+                        changed = True
                         egraph.merge(eclass_id, child_id)
+
+                if enode.op.category == Category.CAST_TYPE:
+                    print(egraph)
+                    print('Enter third rule')
+                
+                    children_sem, children_ids = egraph.get_date_semantic_children_values(eclass_id)
+                    print(f'Children: {children_sem}')
+                    print(children_ids)
+                    eq_prims, param_flag = self.primitives.find_semantic_over_date_primitives(semantic, children_sem)
+                    print(eq_prims)
+
+                    n = len(eq_prims)
+                    if n > 0:
+                        changed = True
+                        if param_flag:
+                            child_id = egraph.add(ENode(op=eq_prims[0], children=(children_ids[0],)))
+                        else:
+                            child_id = egraph.add(ENode(op=eq_prims[0], children=()))
+                        if n == 1:
+                            egraph.merge(eclass_id, child_id)
+
+
+
+
 
         print(egraph)
 

@@ -107,45 +107,82 @@ class EGraph:
                 print(evaluation)
                 self.S[eclass_id] = evaluation
 
-    def get_date_semantic_children_values(self, eclass_id: int, parent_date: bool = False):
+    
+    def get_date_semantic_children_values(
+        self,
+        eclass_id: int,
+        parent_date: bool = False,
+        visiting: set[tuple[int, bool]] | None = None,
+    ):
+        if visiting is None:
+            visiting = set()
+
         canon_class_id = self.U.find(eclass_id)
+        state = (canon_class_id, parent_date)
+
+        # Detect a cycle along the current recursion path
+        if state in visiting:
+            return [], []
+
         enodes = self.M.get(canon_class_id, set())
 
         if not enodes:
-            return None
+            return [], []
 
-        children_values = []
-        children_ids = []
-        for enode in enodes:
+        visiting.add(state)
 
-            if len(enode.children) == 0 and parent_date:
-                val = self.S[canon_class_id]
-                if val not in children_values:
-                    children_values.append(val[1])
-                    children_ids.append(canon_class_id)
-            else:
+        try:
+            children_values = []
+            children_ids = []
 
-                for child_eclass_id in enode.children:
-                    canon_child_id = self.U.find(child_eclass_id)
-                    child_date = isinstance(enode.op.semantics, DateSemantics)
+            for enode in enodes:
+                if len(enode.children) == 0 and parent_date:
+                    val = self.S.get(canon_class_id)
 
-                    res_sem, res_id = self.get_date_semantic_children_values(canon_child_id, child_date)
+                    if val is not None and val[1] not in children_values:
+                        children_values.append(val[1])
+                        children_ids.append(canon_class_id)
 
-                    if isinstance(res_sem,  (list, tuple)):
-                        for sem_item in res_sem:
-                            if sem_item not in children_values:
-                                children_values.append(sem_item)
+                else:
+                    child_date = isinstance(
+                        enode.op.semantics, DateSemantics
+                    )
 
-                        for id_item in res_id:
-                            if id_item not in children_ids:
-                                children_ids.append(id_item)
-                    elif res_sem is not None and res_sem not in children_values:
-                        children_values.append(res_sem)
-                        if res_id is not None and res_id not in children_ids:
-                            children_ids.append(res_id)
+                    for child_eclass_id in enode.children:
+                        canon_child_id = self.U.find(child_eclass_id)
 
-            
-        return children_values, children_ids
+                        res_sem, res_id = (
+                            self.get_date_semantic_children_values(
+                                canon_child_id,
+                                child_date,
+                                visiting,
+                            )
+                        )
+
+                        if isinstance(res_sem, (list, tuple)):
+                            for sem_item in res_sem:
+                                if sem_item not in children_values:
+                                    children_values.append(sem_item)
+
+                            for id_item in res_id:
+                                if id_item not in children_ids:
+                                    children_ids.append(id_item)
+
+                        elif res_sem is not None:
+                            if res_sem not in children_values:
+                                children_values.append(res_sem)
+
+                            if (
+                                res_id is not None
+                                and res_id not in children_ids
+                            ):
+                                children_ids.append(res_id)
+
+            return children_values, children_ids
+
+        finally:
+            visiting.remove(state)
+
 
     def __repr__(self):
         return f"EGraph(\n\nUnionFind={self.U}, \n\nH={self.H}, \n\nM={self.M}, \n\nS={self.S})"
