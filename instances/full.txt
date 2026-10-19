@@ -33,3 +33,5 @@ $P-plus8monat #   D.as_str.plus_day(8)
 
 $P-minus7tag #  D.as_int.minus_week(1)
 $P-minus14tag #  D.as_int.minus_week(2)
+
+to_integer('$P-tagUltimoVormonat')-5

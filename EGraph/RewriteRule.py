@@ -41,6 +41,15 @@ class RewriteRule:
                             cast_id = egraph.add(ENode(op=eq_prims[1], children=(child_id,)))
                             egraph.merge(eclass_id, cast_id)
 
+                if enode.op.category == Category.CAST_TYPE:
+
+                    child_id = enode.children[0]
+                    child = next(iter(egraph.M.get(child_id)))
+                    child_type = child.op.return_type
+
+                    if child_type == enode.op.return_type:
+                        egraph.merge(eclass_id, child_id)
+
         print(egraph)
 
 

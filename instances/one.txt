@@ -1,1 +1,1 @@
-startstring(4, '$P-plus1tag') + "-" + endstring(2, startstring(6, '$P-plus1tag')) + "-" + endstring(2, '$P-plus1tag')    #   23 # str
+startstring(4, '$P-plus1tag') + "-" + endstring(2, startstring(6, '$P-plus1tag')) + "-" + endstring(2, '$P-plus1tag') #   23 # str

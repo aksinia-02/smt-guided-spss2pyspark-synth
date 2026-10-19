@@ -8,8 +8,10 @@ from .Primitive import Primitive
 from .date_primitives import DatePrimitiveRegistry
 from .cast_functions import CastFunctionRegistry
 from .string_functions import StringFunctionRegistry
+from .arithmetic_function import ArithmeticFunctionRegistry
 
 from .base_registry import BasePrimitiveRegistry
+
 @dataclass
 class MasterPrimitiveRegistry:
     def __init__(self):
@@ -18,12 +20,14 @@ class MasterPrimitiveRegistry:
             DatePrimitiveRegistry(),
             CastFunctionRegistry(),
             StringFunctionRegistry(),
+            ArithmeticFunctionRegistry()
             # Add new function domain children here
         ]
 
         self.date_primitives = self.registries[0].primitives
         self.cast_functions = self.registries[1].primitives
         self.string_functions = self.registries[2].primitives
+        self.arith_functions = self.registries[3].primitives
 
     def get_function_by_name(self, name: str) -> Primitive:
         """
@@ -35,6 +39,9 @@ class MasterPrimitiveRegistry:
         for func in self.cast_functions:
             if func.name == name:
                 return func
+        for func in self.arith_functions:
+            if func.name == name:
+                return func
         print(f"Function '{name}' not found in the registered functions.")
         return None
 
@@ -43,6 +50,13 @@ class MasterPrimitiveRegistry:
         """
         Returns a list of functions that match the required import_type.
         """
+        print('Import type')
+        print(import_type)
+        for func in functions:
+            print('func types')
+            print(func.name)
+            print(func.semantics.import_type)
+            print(import_type.eq_exact(func.semantics.import_type))
         return [
             func for func in functions
             if isinstance(func.semantics, FuncSemantics) and
@@ -53,6 +67,7 @@ class MasterPrimitiveRegistry:
         """
         Returns a list of functions that have the specified target_type.
         """
+        print(f'Target type: {target_type}')
         return [
             func for func in self.cast_functions
             if isinstance(func.semantics, FuncSemantics) and
@@ -62,6 +77,9 @@ class MasterPrimitiveRegistry:
     def get_functions_with_specified_types(self, import_type: DateType, target_type: PrimitiveType):
 
         funcs = self.get_functions_with_specified_target_type(target_type)
+        print('gggg')
+        print(funcs)
+        print('gggg')
         return self.get_functions_with_specified_import_type(import_type, funcs)
         
 
@@ -72,12 +90,14 @@ class MasterPrimitiveRegistry:
         for primitive in primitives:
             print(str(primitive) + "\n")
 
-    def get_plus_function(self, type: PrimitiveType) -> Primitive:
+    def get_binary_function(self, type: PrimitiveType, op:str) -> Primitive:
         """
         Returns the plus function for the specified type.
         """
         if type == PrimitiveType.TYPE_STRING:
             return self.get_function_by_name("concat_ws")
+        if type == PrimitiveType.TYPE_INT:
+            return self.get_function_by_name("-")
         return None
 
     # type is not None if column is given

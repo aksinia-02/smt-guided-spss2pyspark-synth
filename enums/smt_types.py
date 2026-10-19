@@ -16,12 +16,19 @@ class PrimitiveType(Enum):
 
     @classmethod
     def get_type_by_value(cls, value: str) -> "PrimitiveType | None":
+        if isinstance(value, cls):
+            return value
         for member in cls:
             if member.value == value:
                 return member
         return None 
 
     def __eq__(self, other):
+        print(other)
+        if self.value == self.TYPE_ANY.value:
+            return True
+        if other.value == self.TYPE_ANY.value:
+            return True
         if isinstance(other, PrimitiveType):
             return self.value == other.value
         if isinstance(other, DateType):
@@ -57,6 +64,14 @@ class DateType(Enum):
     def get_type_by_value(cls, value: str) -> "DateType | None":
         for member in cls:
             if member.value == value:
+                return member
+        return None 
+
+    @classmethod
+    def get_type_by_value_format(cls, value: str, format: str) -> "DateType | None":
+        for member in cls:
+            print(f'{value}, {format}')
+            if member.value == value and member.format == format:
                 return member
         return None 
 

@@ -155,7 +155,7 @@ class CastFunctionRegistry(BasePrimitiveRegistry):
         ## Int to String any format #TODO add another casting for any format
         name = f"to_string"
         return_type = PrimitiveType.TYPE_STRING
-        arg_types = [(PrimitiveType.TYPE_INT, True)]
+        arg_types = [(PrimitiveType.TYPE_ANY, True)]
         category = Category.CAST_TYPE
 
         pyspark_str = f"{{0}}.cast(t.StringType())"
@@ -166,7 +166,7 @@ class CastFunctionRegistry(BasePrimitiveRegistry):
         semantics = FuncSemantics(
             name=f"to_string",
             target_type=PrimitiveType.TYPE_STRING,
-            import_type=PrimitiveType.TYPE_INT,
+            import_type=PrimitiveType.TYPE_ANY,
             weight=20
         )
         self.add_primitive(name, return_type, arg_types, category, semantics, pyspark_str, python_eval=python_eval, func=True)

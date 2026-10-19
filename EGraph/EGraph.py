@@ -148,4 +148,4 @@ class EGraph:
         return children_values, children_ids
 
     def __repr__(self):
-        return f"EGraph(\n\nUnionFind={self.U}, \n\nH={self.H}, \n\nM={self.M}\n\n)"
+        return f"EGraph(\n\nUnionFind={self.U}, \n\nH={self.H}, \n\nM={self.M}, \n\nS={self.S})"

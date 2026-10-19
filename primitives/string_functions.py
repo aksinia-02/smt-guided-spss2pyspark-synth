@@ -16,7 +16,7 @@ class StringFunctionRegistry(BasePrimitiveRegistry):
 
         name = f"startstring"
         return_type = PrimitiveType.TYPE_STRING
-        arg_types = [(PrimitiveType.TYPE_STRING, True), (PrimitiveType.TYPE_INT, False)]
+        arg_types = [(PrimitiveType.TYPE_INT, False), (PrimitiveType.TYPE_STRING, True)]
         category = Category.STRING_FUNCTION
 
         pyspark_str = f"F.substring({{1}}, 1, {{0}})"
@@ -31,7 +31,7 @@ class StringFunctionRegistry(BasePrimitiveRegistry):
 
         name = f"endstring"
         return_type = PrimitiveType.TYPE_STRING
-        arg_types = [(PrimitiveType.TYPE_STRING, True), (PrimitiveType.TYPE_INT, False)]
+        arg_types = [(PrimitiveType.TYPE_INT, False), (PrimitiveType.TYPE_STRING, True)]
         category = Category.STRING_FUNCTION
 
         pyspark_str = f"F.substring({{1}}, -{{0}}, {{0}})"
