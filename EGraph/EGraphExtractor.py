@@ -4,6 +4,7 @@ from enums.smt_types import DateType
 from dataclasses import dataclass, field 
 
 from math import inf
+import itertools
 
 @dataclass
 class ExtractedExpr:
@@ -75,49 +76,133 @@ class EGraphExtractor:
             if expr[root] is not None
         }
 
-    def extract(self, eclass_id: int, expected_type: DateType) -> ExtractedExpr:
-        eclass_id = self.egraph.uf.find(eclass_id)
-        best_expr = ExtractedExpr(cost=float("inf"), code="")
+    def extract_all(self):
+        """
+        Extracts all valid expressions for every canonical e-class,
+        safely breaking cycles using a path-tracking visiting set.
+        """
+        # Map each canonical root to its set of (cost, expression) tuples
+        cache: dict[int, set[tuple[float, str]]] = {}
 
-        for node in self.egraph.classes[eclass_id]:
-            # Terminals
-            if node.op == "LITERAL":
-                val = f"'{node.payload}'" if isinstance(node.payload, str) else str(node.payload)
-                expr = ExtractedExpr(cost=1.0, code=f"F.lit({val})")
+        # Get all canonical e-class roots
+        classes = {}
+        for class_id, nodes in self.egraph.M.items():
+            root = self.egraph.U.find(class_id)
+            classes.setdefault(root, set()).update(nodes)
 
-            elif node.op == "PARAM":
-                expr = ExtractedExpr(cost=10.0, code=f"F.col('{node.payload}')")
+        def dfs(root_id: int, visiting: set[int]) -> set[tuple[float, str]]:
+            # 1. Return cached results if already computed
+            if root_id in cache:
+                return cache[root_id]
 
-            elif node.op == "PRIMITIVE":
-                prim = node.payload
-                code = prim.to_pyspark([])
-                cost = 5.0
-                if hasattr(prim, 'semantics') and hasattr(prim.semantics, 'weight'):
-                    cost = float(prim.semantics.weight)
-                expr = ExtractedExpr(cost=cost, code=code)
+            # 2. Cycle Detection: If this root is already in the current recursion path, break the cycle
+            if root_id in visiting:
+                return set()
 
-            # Operators / Function Applications
-            elif node.op == "F.concat":
-                children_ext = [self.extract(c, expected_type) for c in node.children]
-                total_cost = sum(c.cost for c in children_ext) + 2.0
-                args_code = ", ".join(c.code for c in children_ext)
-                expr = ExtractedExpr(cost=total_cost, code=f"F.concat({args_code})")
+            visiting.add(root_id)
+            local_exprs = set()
 
-            elif node.op == "CAST":
-                cast_func = node.payload
-                child_ext = self.extract(node.children[0], cast_func.semantics.import_type)
-                total_cost = child_ext.cost + cast_func.semantics.weight
-                code = cast_func.to_pyspark([child_ext.code])
-                expr = ExtractedExpr(cost=total_cost, code=code)
+            try:
+                nodes = classes.get(root_id, set())
+                for node in nodes:
+                    child_ids = tuple(self.egraph.U.find(c) for c in node.children)
 
-            else:
-                # Generic fallback for binary/function nodes
-                children_ext = [self.extract(c, expected_type) for c in node.children]
-                total_cost = sum(c.cost for c in children_ext) + 1.0
-                args_code = ", ".join(c.code for c in children_ext)
-                expr = ExtractedExpr(cost=total_cost, code=f"{node.op}({args_code})")
+                    # Recursively get expressions for all children
+                    child_expr_lists = []
+                    all_children_valid = True
+                    
+                    for c_id in child_ids:
+                        c_exprs = dfs(c_id, visiting)
+                        if not c_exprs:
+                            all_children_valid = False
+                            break
+                        child_expr_lists.append(c_exprs)
 
-            if expr.cost < best_expr.cost:
-                best_expr = expr
+                    if not all_children_valid:
+                        continue
 
-        return best_expr
+                    # Combine child expressions using Cartesian product
+                    for child_comb in itertools.product(*child_expr_lists):
+                        op_weight = getattr(node.op.semantics, 'weight', 1.0)
+                        candidate_cost = op_weight + sum(c[0] for c in child_comb)
+                        
+                        child_strings = [c[1] for c in child_comb]
+                        candidate_expr = node._render(child_strings)
+                        
+                        local_exprs.add((candidate_cost, candidate_expr))
+
+            finally:
+                visiting.remove(root_id)
+
+            cache[root_id] = local_exprs
+            return local_exprs
+
+        # Run DFS for all roots
+        results = {}
+        for root in classes:
+            expr_set = dfs(root, set())
+            if expr_set:
+                results[root] = sorted(expr_set, key=lambda x: x[0])
+
+        return results
+
+    # def extract_all(self):
+    #     """
+    #     Return all valid expressions for every reachable e-class, 
+    #     ordered by cost (ascending).
+
+    #     Returns:
+    #         dict[int, list[tuple[float, str]]]
+    #         Maps canonical e-class IDs to a list of (cost, expression) tuples, 
+    #         sorted from lowest to highest cost.
+    #     """
+    #     classes = {}
+    #     for class_id, nodes in self.egraph.M.items():
+    #         root = self.egraph.U.find(class_id)
+    #         classes.setdefault(root, set()).update(nodes)
+
+    #     # Map each root to a set of unique (cost, expression) tuples
+    #     expressions: dict[int, set[tuple[float, str]]] = {root: set() for root in classes}
+
+    #     print(classes)
+
+    #     # Iteratively discover and propagate expressions until fixpoint
+    #     changed = True
+    #     while changed:
+    #         print(f'Expressions: {expressions}')
+    #         changed = False
+    #         return
+
+    #         for root, nodes in classes.items():
+    #             for node in nodes:
+    #                 child_ids = tuple(self.egraph.U.find(c) for c in node.children)
+
+    #                 # An operator can be evaluated only when all children have at least one known expression
+    #                 if any(c not in expressions or not expressions[c] for c in child_ids):
+    #                     continue
+
+    #                 # Get all expression lists for each child
+    #                 child_expr_lists = [expressions[c] for c in child_ids]
+
+    #                 # Take the Cartesian product to combine all possible child expressions
+    #                 for child_comb in itertools.product(*child_expr_lists):
+    #                     # child_comb is a tuple of (child_cost, child_code) for each child
+    #                     candidate_cost = node.op.semantics.weight + sum(c[0] for c in child_comb)
+    #                     child_strings = [c[1] for c in child_comb]
+                        
+    #                     candidate_expr = node._render(child_strings)
+    #                     candidate = (candidate_cost, candidate_expr)
+
+    #                     # If this is a new unique expression for this root, add it and mark changed
+    #                     if candidate not in expressions[root]:
+    #                         expressions[root].add(candidate)
+    #                         changed = True
+
+    #     # Sort each e-class's expressions by cost (ascending) and return
+    #     result = {}
+    #     for root, expr_set in expressions.items():
+    #         if expr_set:
+    #             sorted_exprs = sorted(expr_set, key=lambda x: x[0])
+    #             result[root] = sorted_exprs
+
+    #     return result

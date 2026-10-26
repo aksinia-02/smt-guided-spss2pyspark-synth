@@ -1,1 +1,1 @@
-to_string('$P-tag') #   23 # str
+to_string(to_integer('$P-tagUltimoVormonat')-5) #   23 # str

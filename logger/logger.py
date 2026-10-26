@@ -10,6 +10,11 @@ def setup_logger(name: str = "", level: int = logging.DEBUG) -> logging.Logger:
     logger = logging.getLogger(name)
     logger.setLevel(level)
 
+    # logging.basicConfig(
+    #     level=logging.WARNING,
+    #     stream=sys.stderr
+    # )
+
     # Avoid adding duplicate handlers if logger is imported multiple times
     if not logger.handlers:
         console_handler = logging.StreamHandler(sys.stdout)

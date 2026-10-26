@@ -51,19 +51,19 @@ class EGraphSynthesizer:
         self.matcher = semantic_matcher
         self.primitives = MasterPrimitiveRegistry()
 
-        for p in self.primitives.date_primitives:
-            if "D.as_str" in p.name and len(p.arg_types) == 0:
-                print(
-                    "name:", p.name,
-                    "semantics:", p.semantics.name,
-                    "eval:", p.python_eval([], None)
-                )
-            else:
-                print(
-                    "name:", p.name,
-                    "semantics:", p.semantics.name,
-                    "eval:", p.python_eval([1], None)
-                )
+        # for p in self.primitives.date_primitives:
+        #     if "D.as_str" in p.name and len(p.arg_types) == 0:
+        #         print(
+        #             "name:", p.name,
+        #             "semantics:", p.semantics.name,
+        #             "eval:", p.python_eval([], None)
+        #         )
+        #     else:
+        #         print(
+        #             "name:", p.name,
+        #             "semantics:", p.semantics.name,
+        #             "eval:", p.python_eval([1], None)
+        #         )
 
     def synthesize(self, spss_ast, expected_type: DateType, max_iterations: int = 3) -> str:
 
@@ -78,21 +78,26 @@ class EGraphSynthesizer:
         root_id = self.ingest_spss_ast(egraph, spss_ast, expected_type)
         egraph.root_id = root_id
 
-        print(egraph)
+        logger.debug(egraph)
 
         #egraph.fill_init_semantic()
 
         logger.debug("##########       Rewrite EGraph       ##########")
         rewriter = RewriteRule(self.primitives)
         for _ in range(max_iterations):
-            print('new egraph')
-            print(egraph)
+            logger.debug(f' new Graph {egraph}')
             if not rewriter.apply(egraph, self.primitives):
                 break
 
         extractor = EGraphExtractor(egraph, self.primitives)
         result = extractor.extract_best()
         root_id = egraph.U.find(root_id)
+
+        expressions = extractor.extract_all()
+        print(expressions)
+
+        for item in expressions:
+            print(item)
 
         return result.get(root_id)
 
@@ -104,7 +109,6 @@ class EGraphSynthesizer:
 
         if isinstance(node, ParamNode):
             decoded_spec = self.decoder.decode(node.name)
-            print(decoded_spec)
 
             child_id = None
             if decoded_spec.amount is not None:

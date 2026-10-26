@@ -99,12 +99,12 @@ class EGraph:
         for eclass_id, enodes in list(self.M.items()):
             for enode in enodes:
                 children = []
-                print(enode)
+                #print(enode)
                 for child_id in enode.children:
                     child_sem = self.S[child_id]
                     children.append(child_sem)
                 evaluation = enode.get_semantic(children)
-                print(evaluation)
+                #print(evaluation)
                 self.S[eclass_id] = evaluation
 
     

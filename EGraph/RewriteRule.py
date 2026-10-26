@@ -6,6 +6,9 @@ from primitives.composite_registry import MasterPrimitiveRegistry
 
 from enums.categories import Category
 
+import logging
+from logger.logger import logger, log_primitive, log_list
+
 class RewriteRule:
     def __init__(self, primitives: MasterPrimitiveRegistry):
         self.primitives = primitives
@@ -14,24 +17,19 @@ class RewriteRule:
         changed = False
 
         for eclass_id, enodes in list(egraph.M.items()):
-            print(eclass_id)
             semantic = egraph.S[eclass_id]
-            print(next(iter(enodes)))
 
             for enode in enodes:
                 if enode.op.category == Category.STRING_FUNCTION:
-                    print('Enter first rule')
+                    logger.debug(f"Entering first rule | Node: {enode}")
 
                     children_sem, children_ids = egraph.get_date_semantic_children_values(eclass_id)
-                    print(f'Children: {children_sem}')
-                    print(children_ids)
+                    logger.debug(f"Children: {children_sem}, ids: {children_ids}")
                     results = self.primitives.find_semantic_over_date_primitives(semantic, children_sem)
 
                     for eq_prims, param_flag in results:
 
                         n = len(eq_prims)
-                        print('ttt')
-                        print(n)
 
                         if n > 0:
                             changed = True
@@ -47,12 +45,10 @@ class RewriteRule:
                                 egraph.merge(eclass_id, cast_id)
 
                 if enode.op.category == Category.CAST_TYPE:
-                    print('Enter second rule')
+                    logger.debug(f"Entering second rule | Node: {enode}")
 
                     child_id = enode.children[0]
-                    print(f'vhild_id: {child_id}')
                     canon_id = egraph.U.find(child_id)
-                    print(canon_id)
                     child = next(iter(egraph.M.get(canon_id)))
                     child_type = child.op.return_type
 
@@ -61,20 +57,15 @@ class RewriteRule:
                         egraph.merge(eclass_id, child_id)
 
                 if enode.op.category == Category.CAST_TYPE:
-                    print(egraph)
-                    print(f'Enter third rule with node {enode}')
+                    logger.debug(f"Entering third rule | Node: {enode}")
                 
                     children_sem, children_ids = egraph.get_date_semantic_children_values(eclass_id)
-                    print(f'Children: {children_sem}')
-                    print(children_ids)
+                    logger.debug(f"Children: {children_sem}, ids: {children_ids}")
                     results = self.primitives.find_semantic_over_date_primitives(semantic, children_sem)
 
                     for eq_prims, param_flag in results:
 
                         n = len(eq_prims)
-                        print('ttt')
-                        print(n)
-                        print(eq_prims)
                         if n > 0:
                             changed = True
                             if param_flag:
@@ -86,14 +77,6 @@ class RewriteRule:
                             else:
                                 cast_id = egraph.add(ENode(op=eq_prims[1], children=(child_id,)))
                                 egraph.merge(eclass_id, cast_id)
-                        print(egraph)
-
-
-
-
-
-        print(egraph)
-
 
         
         return changed

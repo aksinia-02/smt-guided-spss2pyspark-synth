@@ -11,12 +11,12 @@ ArgSpec = Tuple[DateType, bool]
 
 @dataclass
 class BasePrimitiveRegistry(ABC):
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         self.primitives: List[Primitive] = []
-        self.register_all()
+        self.register_all(*args, **kwargs)
 
     @abstractmethod
-    def register_all(self) -> None:
+    def register_all(self, *args, **kwargs) -> None:
         pass
 
     @classmethod

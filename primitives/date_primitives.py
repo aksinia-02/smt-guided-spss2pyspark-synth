@@ -11,12 +11,12 @@ from primitives.dataparams.dataparams import DatesNamespace
 class DatePrimitiveRegistry(BasePrimitiveRegistry):
     """Handles type conversion functions between Date, String, and Int."""
     
-    def register_all(self) -> None:
+    def register_all(self, eval_date: int) -> None:
 
         today = date.today()
         today_int = today.year * 10000 + today.month * 100 + today.day
         
-        self.D = DatesNamespace(today_int)
+        self.D = DatesNamespace(eval_date)
         self.init_dateprimitives()
 
     def init_dateprimitives(self) -> None:

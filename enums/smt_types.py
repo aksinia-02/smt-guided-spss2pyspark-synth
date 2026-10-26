@@ -125,7 +125,7 @@ class DateType(Enum):
     @log_step
     def get_type_by_value_format(cls, value: str, format: str) -> "DateType | None":
         for member in cls:
-            print(f'{value}, {format}')
+            #print(f'{value}, {format}')
             if member.value == value and member.format == format:
                 return member
         return None 

@@ -66,10 +66,11 @@ class MasterPrimitiveRegistry:
     def __init__(self):
 
         self.registries = [
-            DatePrimitiveRegistry(),
+            DatePrimitiveRegistry(20261026),
             CastFunctionRegistry(),
             StringFunctionRegistry(),
-            ArithmeticFunctionRegistry()
+            ArithmeticFunctionRegistry(),
+            #DatePrimitiveRegistry(20250225)
             # Add new function domain children here
         ]
 
@@ -100,13 +101,13 @@ class MasterPrimitiveRegistry:
         """
         Returns a list of functions that match the required import_type.
         """
-        for func in functions:
-            print(import_type.eq_exact(func.semantics.import_type))
-        print(f'mport type {import_type}')
-        print(import_type != PrimitiveType.TYPE_DATE)
-        for func in functions:
-            print(func)
-            print(func.semantics.import_type.value != 'any')
+        # for func in functions:
+        #     print(import_type.eq_exact(func.semantics.import_type))
+        # print(f'mport type {import_type}')
+        # print(import_type != PrimitiveType.TYPE_DATE)
+        # for func in functions:
+        #     print(func)
+        #     print(func.semantics.import_type.value != 'any')
         return [
             func for func in functions
             if isinstance(func.semantics, FuncSemantics) and
@@ -190,8 +191,8 @@ class MasterPrimitiveRegistry:
             #print(f"\nCandidate does not match expected type. Looking for cast functions to convert {return_type} to {expected_type}.")
             matching_casts = self.get_functions_with_specified_types(return_type, expected_type)
 
-            print('Selected matches')
-            print(matching_casts)
+            # print('Selected matches')
+            # print(matching_casts)
 
             if default_string:
                 matching_casts = [
@@ -212,14 +213,14 @@ class MasterPrimitiveRegistry:
     @log_step
     def find_semantic_over_date_primitives(self, semantic, children):
 
-        print(f'length: {len(self.date_primitives)}')
+        # print(f'length: {len(self.date_primitives)}')
 
         results = set()
 
-        for date_prim in self.date_primitives:
+        for i, date_prim in enumerate(self.date_primitives):
 
             param_flag = False
-            print(f'before result: {date_prim}')
+            # print(f'before result: {date_prim}')
             if len(date_prim.arg_types) == 0:
                 result = date_prim.get_semantic_prim([])
             else:
@@ -229,26 +230,27 @@ class MasterPrimitiveRegistry:
                 if len(children) > 0:
                     param_flag = True
                     result = date_prim.get_semantic_prim(children)
-            print(f'f result: {date_prim}')
+                    #result_eval = 
+            # print(f'f result: {date_prim}')
 
             if result[0] == semantic[0]:
-                print('FOUND')
-                print(result)
-                print('FOR')
-                print(semantic)
+                # print('FOUND')
+                # print(result)
+                # print('FOR')
+                # print(semantic)
 
                 if result == semantic:
-                    print('FOUND')
-                    print(result)
-                    print('FOR')
-                    print(semantic)
+                    # print('FOUND')
+                    # print(result)
+                    # print('FOR')
+                    # print(semantic)
                     results.add(((date_prim,), param_flag))
                     #return [date_prim], param_flag
 
             else:
-                print('start to find cast')
-                print(result)
-                print(semantic)
+                # print('start to find cast')
+                # print(result)
+                # print(semantic)
                 strich = PrimitiveType.TYPE_STRING == result[0] or PrimitiveType.TYPE_DATE == result[0]
                 cast_funcs = self.match_type(result[0], semantic[0], strich= strich)
                 #print(len(cast_funcs))

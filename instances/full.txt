@@ -35,3 +35,5 @@ $P-minus7tag #  D.as_int.minus_week(1)
 $P-minus14tag #  D.as_int.minus_week(2)
 
 to_integer('$P-tagUltimoVormonat')-5
+startstring(4, '$P-plus1tag') + "-" + endstring(2, startstring(6, '$P-plus1tag')) + "-" + endstring(2, '$P-plus1tag')
+to_string('$P-tag')
