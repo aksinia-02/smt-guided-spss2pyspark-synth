@@ -40,16 +40,15 @@ class DatePrimitiveRegistry(BasePrimitiveRegistry):
         self.add_primitive(name, return_type, arg_types, category, semantics, pyspark_str, python_eval)
 
         for type in [DateType.TYPE_YEAR, DateType.TYPE_MONTH, DateType.TYPE_DAY]:
-
             name = f"D.as_date.BD.{type.value}"
             return_type = type
             arg_types = []
             category = Category.DATE_NAMESPACE
     
             pyspark_str = f"D.as_date.BD.{type.value}"
-            if type == DateType.TYPE_YEAR:
+            if type.eq_exact(DateType.TYPE_YEAR):
                 python_eval = lambda args, _: self.D.as_date.BD.year
-            elif type == DateType.TYPE_MONTH:
+            elif type.eq_exact(DateType.TYPE_MONTH):
                 python_eval = lambda args, _: self.D.as_date.BD.month
             else:  # TYPE_DAY
                 python_eval = lambda args, _: self.D.as_date.BD.day

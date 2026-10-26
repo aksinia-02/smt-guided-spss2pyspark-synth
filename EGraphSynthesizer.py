@@ -13,12 +13,57 @@ from enums.categories import Category
 from primitives.composite_registry import MasterPrimitiveRegistry
 from SPSSExpressionParser import ParamNode, FunctionCallNode, BinaryOpNode, LiteralNode
 
+import functools
+import inspect
+
+import logging
+from logger.logger import logger, log_primitive, log_list
+
+def log_step(func):
+    """A robust decorator to log entry, arguments (like node), and exit of class methods."""
+    @functools.wraps(func)
+    def wrapper(self, *args, **kwargs):
+        sig = inspect.signature(func)
+        bound_args = sig.bind(self, *args, **kwargs)
+        bound_args.apply_defaults()
+        
+        node_val = bound_args.arguments.get('node', 'N/A')
+        
+        logger.debug(f"Entering {func.__name__} | Node: {node_val}")
+        
+        try:
+            result = func(self, *args, **kwargs)
+            #print(result)
+            result_name = type(result).__name__ if result is not None else "None"
+            logger.debug(f"Exiting {func.__name__} -> Produced id: {result}")
+            return result
+        except Exception as e:
+            logger.error(f"Exception in {func.__name__}: {e}")
+            raise
+            
+    return wrapper
+
 
 class EGraphSynthesizer:
     def __init__(self, decoder, semantic_matcher):
+        logger.info(f"Initializing synthesir")
         self.decoder = decoder
         self.matcher = semantic_matcher
         self.primitives = MasterPrimitiveRegistry()
+
+        for p in self.primitives.date_primitives:
+            if "D.as_str" in p.name and len(p.arg_types) == 0:
+                print(
+                    "name:", p.name,
+                    "semantics:", p.semantics.name,
+                    "eval:", p.python_eval([], None)
+                )
+            else:
+                print(
+                    "name:", p.name,
+                    "semantics:", p.semantics.name,
+                    "eval:", p.python_eval([1], None)
+                )
 
     def synthesize(self, spss_ast, expected_type: DateType, max_iterations: int = 3) -> str:
 
@@ -29,6 +74,7 @@ class EGraphSynthesizer:
 
         egraph = EGraph()
 
+        logger.debug("##########       Construction EGraph       ##########")
         root_id = self.ingest_spss_ast(egraph, spss_ast, expected_type)
         egraph.root_id = root_id
 
@@ -36,6 +82,7 @@ class EGraphSynthesizer:
 
         #egraph.fill_init_semantic()
 
+        logger.debug("##########       Rewrite EGraph       ##########")
         rewriter = RewriteRule(self.primitives)
         for _ in range(max_iterations):
             print('new egraph')
@@ -49,8 +96,11 @@ class EGraphSynthesizer:
 
         return result.get(root_id)
 
+    @log_step
     def ingest_spss_ast(self, egraph: EGraph, node, expected_type) -> int:
         """Recursively populates the e-graph from an SPSS AST node."""
+
+        #logger.debug(f"Entering {func.__name__} | Node: {node}, Expected Type: {expected_type}")
 
         if isinstance(node, ParamNode):
             decoded_spec = self.decoder.decode(node.name)
@@ -66,10 +116,7 @@ class EGraphSynthesizer:
             cand_enode = ENode(op=best_prim, children=(child_id,) if child_id is not None else ())
             cand_id = egraph.add(cand_enode)
 
-            print('------------')
-            print(best_prim.return_type)
-            print(expected_type)
-            print('------------')
+            log_primitive("Best primitive found", best_prim, level=logging.INFO)
 
             if best_prim.return_type != expected_type:
 
@@ -78,7 +125,7 @@ class EGraphSynthesizer:
                 # print(expected_type)
 
                 cast_func = self.primitives.match_type(best_prim.return_type, expected_type)
-                print(cast_func)
+                log_list("Cast functions found", cast_func, level=logging.INFO)
                 cand_id = egraph.add(ENode(op=cast_func[0], children=(cand_id,)))
 
             #egraph.add(ENode(op=cast_func[0], children=(cand_id,)))
@@ -103,7 +150,7 @@ class EGraphSynthesizer:
             fn_name = node.name.lower()
             func = self.primitives.get_function_by_name(fn_name)
 
-            print(func)
+            log_primitive("Function found", func, level=logging.INFO)
 
             rewrite_cast = False
 
@@ -112,11 +159,7 @@ class EGraphSynthesizer:
             child_ids: Tuple[int, ...] = ()
             for i, arg in enumerate(node.args):
 
-                print('tttttttttttttt')
-                print(arg_types[i][0])
                 exp_child_type = PrimitiveType.get_type_by_value(arg_types[i][0])
-                print(exp_child_type)
-                print('tttttttttttttt')
                 child_id = self.ingest_spss_ast(egraph, arg, exp_child_type)
                 child_ids += (child_id,)
 

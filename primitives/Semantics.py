@@ -31,6 +31,7 @@ class FuncSemantics(BaseSemantics):
     """Semantics specific to functions and type transformations."""
     import_type: Optional[DateType] = None
     weight: int = 1000
+    overwrite_format: bool = False
 
 @dataclass
 class StringSemantics(BaseSemantics):

@@ -1,5 +1,3 @@
-# Author: WLN3MIP
-
 from dataclasses import dataclass, field
 from datetime import date
 from dateutil.relativedelta import relativedelta

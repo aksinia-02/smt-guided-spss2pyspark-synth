@@ -1,5 +1,48 @@
 from enum import Enum
 
+import functools
+import inspect
+from logger.logger import logger
+
+def log_step(func):
+    """A decorator that logs 'self', 'other' (if present), and the return result."""
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        sig = inspect.signature(func)
+        bound_args = sig.bind(*args, **kwargs)
+        bound_args.apply_defaults()
+        arguments = bound_args.arguments
+        
+        # Extract self/cls and other values cleanly if they exist
+        self_val = arguments.get('self', arguments.get('cls', None))
+        other_val = arguments.get('other', None)
+        cls_val = arguments.get('cls', None)
+        func_name = func.__name__
+
+        target_obj = self_val if self_val is not None else cls_val
+        if target_obj is not None:
+            class_name = target_obj.__name__ if isinstance(target_obj, type) else target_obj.__class__.__name__
+            display_name = f"{class_name}.{func_name}"
+        else:
+            display_name = func_name
+        
+        # Format the log line based on whether 'other' exists in the signature
+        if other_val is not None:
+            logger.debug(f"Entering {display_name} | self: {self_val!r}, other: {other_val!r}")
+        else:
+            arg_summary = ", ".join(f"{k}={v!r}" for k, v in arguments.items() if k not in ('self', 'cls'))
+            logger.debug(f"Entering {display_name} | Args: ({arg_summary})")
+
+        try:
+            result = func(*args, **kwargs)
+            logger.debug(f"Exiting {display_name} -> Result: {result!r}")
+            return result
+        except Exception as e:
+            logger.error(f"Exception in {display_name}: {e}")
+            raise
+
+    return wrapper
+
 class PrimitiveType(Enum):
 
     TYPE_INT = "int"
@@ -15,19 +58,24 @@ class PrimitiveType(Enum):
         return f"'{self.value}'"
 
     @classmethod
+    @log_step
     def get_type_by_value(cls, value: str) -> "PrimitiveType | None":
         if isinstance(value, cls):
             return value
         for member in cls:
             if member.value == value:
                 return member
-        return None 
+        return None
 
+
+
+    @log_step
     def __eq__(self, other):
-        print(other)
         if self.value == self.TYPE_ANY.value:
             return True
         if other.value == self.TYPE_ANY.value:
+            if self.value == 'date':
+                return False
             return True
         if isinstance(other, PrimitiveType):
             return self.value == other.value
@@ -35,7 +83,12 @@ class PrimitiveType(Enum):
             return self.value == other.primitive_type.value
         return super().__eq__(other)
 
+    @log_step
     def eq_exact(self, other) -> bool:
+        if self.value == self.TYPE_ANY.value:
+            return True
+        if other.value == self.TYPE_ANY.value:
+            return True
         return self.value == other.value
 
 
@@ -61,6 +114,7 @@ class DateType(Enum):
         self.inf_level = inf_level
 
     @classmethod
+    @log_step
     def get_type_by_value(cls, value: str) -> "DateType | None":
         for member in cls:
             if member.value == value:
@@ -68,6 +122,7 @@ class DateType(Enum):
         return None 
 
     @classmethod
+    @log_step
     def get_type_by_value_format(cls, value: str, format: str) -> "DateType | None":
         for member in cls:
             print(f'{value}, {format}')
@@ -75,11 +130,15 @@ class DateType(Enum):
                 return member
         return None 
 
+    @log_step
     def __eq__(self, other):
         if isinstance(other, DateType):
             return self.primitive_type == other.primitive_type
-        return super().__eq__(other)
+        elif isinstance(other, PrimitiveType):
+            return self.primitive_type == other
+        return False
 
+    @log_step
     def eq_exact(self, other) -> bool:
         if isinstance(other, DateType):
             return (

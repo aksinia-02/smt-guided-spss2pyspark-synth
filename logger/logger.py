@@ -1,8 +1,11 @@
 import logging
 import sys
 from typing import Any, Sequence
+import functools
 
-def setup_logger(name: str = "SPSSParser", level: int = logging.DEBUG) -> logging.Logger:
+#from primitives.Primitive import Primitive
+
+def setup_logger(name: str = "", level: int = logging.DEBUG) -> logging.Logger:
     """Configures and returns a custom logger instance."""
     logger = logging.getLogger(name)
     logger.setLevel(level)
@@ -34,3 +37,7 @@ def log_list(title: str, items: Sequence[Any], level: int = logging.INFO) -> Non
     logger.log(level, f"{title} ({len(items)} items):")
     for idx, item in enumerate(items):
         logger.log(level, f"  [{idx}] {item}")
+
+def log_primitive(title: str, primitive, level: int = logging.INFO):
+
+    logger.log(level, f"{title} \n{primitive}")
