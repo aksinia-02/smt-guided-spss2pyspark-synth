@@ -93,30 +93,91 @@ class Verifier:
             print(f'child Expr: {child_ver.expr}, {child.z3_rep}')
 
             if child.category == Category.DATE_NAMESPACE:
-                if z3_rep == 'to_string':
-                    self.expr = z3.IntToStr(child_ver.expr)
-                elif z3_rep == 'to_int':
-                    self.expr = z3.StrToInt(child_ver.expr)
-                elif z3_rep in ('year', 'month', 'day'):
+                if z3_rep in ('year', 'month', 'day'):
                     if z3_rep == 'year':
                         self.expr = child_ver.expr / 10000
                     elif z3_rep == 'month':
                         self.expr = (child_ver.expr / 100) % 100
                     elif z3_rep == 'day':
                         self.expr = child_ver.expr % 100
-                elif z3_rep in ('int_to_date', 'str_to_date'):
-                    self.expr = Verifier.date_to_yyyy_mm_dd(child_ver.expr)
+                else:
+                    found = Verifier.kb_dates.get(child.z3_rep)
+                    print(f'Found for casting: {found}')
 
-                elif z3_rep in ('int_to_str', 'date_to_str'):
-                    self.expr = Verifier.date_to_yyyymmdd_str(child_ver.expr)
+                    if callable(found):
+                        old_type = child.return_type
+                        child.return_type = op.return_type
 
-                elif z3_rep == 'date_to_int' or z3_rep == 'str_to_int':
+                        if child.z3_rep == 'bd':
+                            self.expr = found(Verifier.year * 10000 + Verifier.month * 100 + Verifier.day, child.return_type.value)
+                        else:
+                            if child.z3_rep == 'dif_30_90':
+                                self.expr = found(child, child.semantics.amount)
+                            else:
+                                self.expr = found(child, children_ver[0].expr)
+                        child.return_type = old_type
+
+            else:
+                if child.return_type == op.return_type:
                     self.expr = child_ver.expr
+                elif z3_rep == 'to_string':
+                    self.expr = z3.IntToStr(children_ver[0].expr)
+                elif z3_rep == 'to_int':
+                    self.expr = z3.StrToInt(children_ver[0].expr)
+                else:
+                    print(f"Unhandled cast operation: {op.name} with z3_rep: {z3_rep}")
+
+        elif op.category == Category.ARITHMETIC:
+            left_expr = children_ver[0].expr
+            right_expr = children_ver[1].expr
+
+            if op.name == '+':
+                self.expr = left_expr + right_expr
+            elif op.name == '-':
+                self.expr = left_expr - right_expr
 
 
         self.print_debug()
         print('--------------------')
             #self.constraints.append(z3.IntVal())
+
+    def merge(self, other_ver):
+
+        print("Merging Verifiers:")
+
+        merged_ver = Verifier.__new__(Verifier)
+        merged_ver.solver = z3.Solver()
+        merged_ver.expr = other_ver.expr
+        # merged_ver.constants = {**self.constants, **other_ver.constants}
+        # merged_ver.assertions = {**self.assertions, **other_ver.assertions}
+
+        for assertion in self.date_solver.assertions():
+            merged_ver.solver.add(assertion)
+
+        for assertion in other_ver.solver.assertions():
+            merged_ver.solver.add(assertion)
+
+        for assertion in self.solver.assertions():
+            merged_ver.solver.add(assertion)
+
+        merged_ver.solver.add(self.expr != other_ver.expr)
+        
+        result = merged_ver.solver.check()
+
+        if result == z3.sat:
+            model = merged_ver.solver.model()
+            print(f"Counterexample found -> Year: {model[merged_ver.year]}, Month: {model[merged_ver.month]}, Day: {model[merged_ver.day]}")
+            return False
+        elif result == z3.unsat:
+            print("PROVED")
+            for assertion in other_ver.solver.assertions():
+                self.solver.add(assertion)
+            self.solver.add(self.expr != other_ver.expr)
+            return True
+        else:
+            print("Unknown")
+
+        return False
 
     def get_date_expr(self, name: str, param: str):
         print(name)
@@ -156,7 +217,7 @@ class Verifier:
             "bd_day": cls.day,
 
             "plus_minus_unit": lambda op, p: cls.plus_minus_unit(op, p),
-            "bd": lambda d_type: cls.cast_to_type(d_type),
+            "bd": lambda value, d_type: cls.cast_to_type(value, d_type),
             "dif_30_90": lambda op, p: cls.dif_30_90(op, p),
             "unit_end_start": lambda op, p: cls.unit_end_start(op, p),
             "unit_plus_minus": lambda op, p: cls.unit_plus_minus(op, p),
@@ -212,7 +273,8 @@ class Verifier:
 
     @classmethod
     def dif_30_90(cls, op:Primitive, p: int):
-        result = cls.calculate_plus_minus(op.semantics.direction, 'days', op.semantics.amount)
+        target_y, target_m, target_d = cls.calculate_plus_minus(op.semantics.direction, 'days', op.semantics.amount)
+        result = target_y * 10000 + target_m * 100 + target_d
         return cls.cast_to_type(result, op.return_type.value)
 
     @classmethod

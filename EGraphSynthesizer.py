@@ -79,6 +79,7 @@ class EGraphSynthesizer:
         egraph.root_id = root_id
 
         logger.debug(egraph)
+        print(f'new Graph {egraph}')
 
         #egraph.fill_init_semantic()
 
@@ -86,6 +87,7 @@ class EGraphSynthesizer:
         rewriter = RewriteRule(self.primitives)
         for _ in range(max_iterations):
             logger.debug(f' new Graph {egraph}')
+            print(f'new Graph {egraph}')
             if not rewriter.apply(egraph, self.primitives):
                 break
 

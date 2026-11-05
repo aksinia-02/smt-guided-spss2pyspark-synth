@@ -70,12 +70,23 @@ class EGraph:
         if root1 == root2:
             return root1
 
+        can_merge = Verifier.merge(self.V[root1], self.V[root2])
+        
+        if not can_merge:
+            # Reject merge safely without corrupting Union-Find
+            return root1
+
         new_root = self.U.union(root1, root2)
         old_root = root1 if new_root == root2 else root2
+
+        print(f"Merging EClass {old_root} into EClass {new_root}")
 
         # Combine nodes in equivalence M
         self.M[new_root].update(self.M[old_root])
         del self.M[old_root]
+
+        if old_root in self.V:
+            del self.V[old_root]
         return new_root
 
     def fill_semanctic(self, eclass_id: int, enode: ENode):
