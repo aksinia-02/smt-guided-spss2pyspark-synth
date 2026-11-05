@@ -51,6 +51,7 @@ class BasePrimitiveRegistry(ABC):
         semantics: BaseSemantics,
         pyspark_str: str,
         python_eval: Optional[Callable[[List[Any], Any], Any]] = None,
+        z3_rep: str = None,
         func: bool = False
     ) -> None:
         primitive = Primitive(
@@ -60,7 +61,8 @@ class BasePrimitiveRegistry(ABC):
             category=category,
             semantics=semantics,
             to_pyspark=BasePrimitiveRegistry.make_pyspark_formatter(pyspark_str, arg_types),
-            python_eval=python_eval
+            python_eval=python_eval,
+            z3_rep=z3_rep
         )
         self.primitives.append(primitive)
 

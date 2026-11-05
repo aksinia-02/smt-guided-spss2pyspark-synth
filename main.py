@@ -3,10 +3,13 @@ import argparse
 from tests.test_dataparams import test_dataparam
 from tests.test_prim import test_prim
 from tests.test_re_expressions import test_re_expressions
+from tests.test_z3 import test_z3
 #from functions_elements.invariants import Primitives
 from SemanticMatcher import SemanticMatcher
 
 def main(args):
+    # test_z3()
+    # return
     test_re_expressions(args.file)
     return
     # decoded_qeustions = test_prim(args.file)

@@ -7,6 +7,8 @@ from enums.smt_types import PrimitiveType
 
 from primitives.Semantics import LiteralSemantics, DateSemantics
 
+from z3_verifier.Verifier import Verifier
+
 # Example of execution:
 # For expression (x + 0) * y
 # UnionFind: {0: 0, 1: 1, 2: 2}
@@ -29,6 +31,8 @@ class EGraph:
 
         self.S: Dict[int, SemanticSpec] = {}# mapps EClass IDs to extracted semantic
         self.R: Dict[int, str] = {}
+
+        self.V: Dict[int, Verifier] = {}
 
         self.root_id: int
 
@@ -55,6 +59,7 @@ class EGraph:
         self.len_nodes += 1
 
         self.fill_semanctic(eclass_id, node)
+        self.fill_verifier(eclass_id, node)
         #self.fill_pyspark_repr(node)
 
         return eclass_id
@@ -84,6 +89,21 @@ class EGraph:
                 children.append(child_sem)
             self.S[eclass_id] = enode.get_semantic(children)
 
+    def fill_verifier(self, eclass_id: int, enode: ENode):
+
+        z3_ver = self.V.get(eclass_id)
+
+        if z3_ver is None:
+            children_ver = []
+            children_nodes = []
+            for child_id in enode.children:
+                node = next(iter(self.M[child_id]))
+                children_nodes.append(node) 
+
+                child_ver = self.V[child_id]
+                children_ver.append(child_ver)
+            self.V[eclass_id] = Verifier(enode.op, children_ver, children_nodes)
+
     # def fill_pyspark_repr(self, enode: ENode):
 
     #     children = []
@@ -92,20 +112,19 @@ class EGraph:
     #         children.append(child_repr)
     #     self.R[]
 
+    # def fill_init_semantic(self):
+    #     #TODO make assertion
+    #     for eclass_id, enodes in list(self.M.items()):
+    #         for enode in enodes:
+    #             children = []
+    #             #print(enode)
+    #             for child_id in enode.children:
+    #                 child_sem = self.S[child_id]
+    #                 children.append(child_sem)
+    #             evaluation = enode.get_semantic(children)
+    #             #print(evaluation)
+    #             self.S[eclass_id] = evaluation
 
-
-    def fill_init_semantic(self):
-        #TODO make assertion
-        for eclass_id, enodes in list(self.M.items()):
-            for enode in enodes:
-                children = []
-                #print(enode)
-                for child_id in enode.children:
-                    child_sem = self.S[child_id]
-                    children.append(child_sem)
-                evaluation = enode.get_semantic(children)
-                #print(evaluation)
-                self.S[eclass_id] = evaluation
 
     
     def get_date_semantic_children_values(

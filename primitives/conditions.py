@@ -19,6 +19,7 @@ class ConditionsRegistry(BasePrimitiveRegistry):
         category = Category.CONDITION
 
         pyspark_str = f"F.col({{0}}).isNull()"
+        z3_rep = f"null"
         semantics = FuncSemantics(
             name=f"is_null",
             target_type=PrimitiveType.TYPE_BOOLEAN,
@@ -33,6 +34,7 @@ class ConditionsRegistry(BasePrimitiveRegistry):
         category = Category.CONDITION
 
         pyspark_str = f"F.col({{0}}).isNotNull()"
+        z3_rep = f"not_null"
         semantics = FuncSemantics(
             name=f"is_not_null",
             target_type=PrimitiveType.TYPE_BOOLEAN,

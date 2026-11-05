@@ -22,6 +22,7 @@ class Primitive:
     semantics: BaseSemantics
     to_pyspark: Callable[[List[str]], str]
     python_eval: Optional[Callable[[List[Any], Any], Any]] = None
+    z3_rep: str = None
 
     def __hash__(self):
         return hash(self.name)

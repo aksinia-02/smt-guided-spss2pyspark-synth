@@ -24,6 +24,7 @@ class CastFunctionRegistry(BasePrimitiveRegistry):
         #pyspark_str = lambda args: f"{args[0]}.cast(t.StringType())"
 
         python_eval = lambda args, _: str(args[0])
+        z3_rep = f"to_string"
 
         semantics = FuncSemantics(
             name=f"to_string",
@@ -31,7 +32,7 @@ class CastFunctionRegistry(BasePrimitiveRegistry):
             import_type=PrimitiveType.TYPE_ANY,
             weight=20
         )
-        self.add_primitive(name, return_type, arg_types, category, semantics, pyspark_str, python_eval=python_eval, func=True)
+        self.add_primitive(name, return_type, arg_types, category, semantics, pyspark_str, python_eval=python_eval, z3_rep=z3_rep, func=True)
 
         name = f"to_integer"
         return_type = PrimitiveType.TYPE_INT
@@ -42,6 +43,7 @@ class CastFunctionRegistry(BasePrimitiveRegistry):
         #pyspark_str = lambda args: f"{args[0]}.cast(t.IntegerType())"
 
         python_eval = lambda args, _: int(args[0])
+        z3_rep = f"to_int"
 
         semantics = FuncSemantics(
             name=f"to_integer",
@@ -49,7 +51,7 @@ class CastFunctionRegistry(BasePrimitiveRegistry):
             import_type=PrimitiveType.TYPE_ANY,
             weight=20
         )
-        self.add_primitive(name, return_type, arg_types, category, semantics, pyspark_str, python_eval=python_eval, func=True)
+        self.add_primitive(name, return_type, arg_types, category, semantics, pyspark_str, python_eval=python_eval, z3_rep=z3_rep, func=True)
         
         # Date component extractors (Year, Month, Day)
         for type in [DateType.TYPE_YEAR, DateType.TYPE_MONTH, DateType.TYPE_DAY]:
@@ -60,6 +62,7 @@ class CastFunctionRegistry(BasePrimitiveRegistry):
             category = Category.CAST_TYPE
     
             pyspark_str = f"F.{type.value}({{0}})"
+            z3_rep = f"{type.value}"
 
             #pyspark_str = lambda args, dt=type: f"F.{dt.value}({args[0]})"
 
@@ -77,7 +80,7 @@ class CastFunctionRegistry(BasePrimitiveRegistry):
                 weight=20,
                 overwrite_format=True
             )
-            self.add_primitive(name, return_type, arg_types, category, semantics, pyspark_str, python_eval=python_eval, func=True)
+            self.add_primitive(name, return_type, arg_types, category, semantics, pyspark_str, python_eval=python_eval, z3_rep=z3_rep, func=True)
 
         ### Cast Functions for different types (Date, String, Int)
 
@@ -90,6 +93,7 @@ class CastFunctionRegistry(BasePrimitiveRegistry):
         pyspark_str = f"F.to_date({{0}}.cast(t.StringType()), 'yyyyMMdd')"
         #pyspark_str = lambda args: f"F.to_date({args[0]}.cast(t.StringType()), 'yyyyMMdd')"
         python_eval = lambda args, _: datetime.strptime(str(args[0]), '%Y%m%d').strftime('%Y-%m-%d')
+        z3_rep = f"int_to_date"
 
         semantics = FuncSemantics(
             name=f"cast_from_int_to_date",
@@ -97,7 +101,7 @@ class CastFunctionRegistry(BasePrimitiveRegistry):
             import_type=DateType.TYPE_INT,
             weight=20
         )
-        self.add_primitive(name, return_type, arg_types, category, semantics, pyspark_str, python_eval=python_eval, func=True)
+        self.add_primitive(name, return_type, arg_types, category, semantics, pyspark_str, python_eval=python_eval, z3_rep=z3_rep, func=True)
 
         ## Int to String
         name = f"cast_from_int_to_string"
@@ -108,6 +112,7 @@ class CastFunctionRegistry(BasePrimitiveRegistry):
         pyspark_str = f"F.date_format(F.to_date({{0}}.cast(t.StringType()), 'yyyyMMdd'), 'yyyy-MM-dd')"
         #pyspark_str = lambda args: f"F.date_format(F.to_date({args[0]}.cast(t.StringType()), 'yyyyMMdd'), 'yyyy-MM-dd')"
         python_eval = lambda args, _: f"{str(args[0])[:4]}-{str(args[0])[4:6]}-{str(args[0])[6:]}"
+        z3_rep = f"int_to_str"
 
         semantics = FuncSemantics(
             name=f"cast_from_int_to_string",
@@ -115,7 +120,7 @@ class CastFunctionRegistry(BasePrimitiveRegistry):
             import_type=DateType.TYPE_INT,
             weight=20
         )
-        self.add_primitive(name, return_type, arg_types, category, semantics, pyspark_str, python_eval=python_eval, func=True)
+        self.add_primitive(name, return_type, arg_types, category, semantics, pyspark_str, python_eval=python_eval, z3_rep=z3_rep, func=True)
 
         ## String to Date
         name = f"cast_from_string_to_date"
@@ -126,6 +131,7 @@ class CastFunctionRegistry(BasePrimitiveRegistry):
         pyspark_str = f"F.to_date({{0}}, 'yyyy-MM-dd')"
         #pyspark_str = lambda args: f"F.to_date({args[0]}, 'yyyy-MM-dd')"
         python_eval = lambda args, _: datetime.strptime(str(args[0]), '%Y-%m-%d').date() if isinstance(args[0], str) else args[0]
+        z3_rep = f"str_to_date"
 
         semantics = FuncSemantics(
             name=f"cast_from_string_to_date",
@@ -133,7 +139,7 @@ class CastFunctionRegistry(BasePrimitiveRegistry):
             import_type=DateType.TYPE_STRING,
             weight=20
         )
-        self.add_primitive(name, return_type, arg_types, category, semantics, pyspark_str, python_eval=python_eval, func=True)
+        self.add_primitive(name, return_type, arg_types, category, semantics, pyspark_str, python_eval=python_eval, z3_rep=z3_rep, func=True)
 
         ## String to Int
         name = f"cast_from_string_to_int"
@@ -144,6 +150,7 @@ class CastFunctionRegistry(BasePrimitiveRegistry):
         pyspark_str = f"F.date_format(F.to_date({{0}}, 'yyyy-MM-dd'), 'yyyyMMdd').cast(t.IntegerType())"
         #pyspark_str = lambda args: f"F.date_format(F.to_date({args[0]}, 'yyyy-MM-dd'), 'yyyyMMdd').cast(t.IntegerType())"
         python_eval = lambda args, _: int(str(args[0]).replace('-', ''))
+        z3_rep = f"str_to_int"
 
         semantics = FuncSemantics(
             name=f"cast_from_string_to_int",
@@ -151,7 +158,7 @@ class CastFunctionRegistry(BasePrimitiveRegistry):
             import_type=DateType.TYPE_STRING,
             weight=20
         )
-        self.add_primitive(name, return_type, arg_types, category, semantics, pyspark_str, python_eval=python_eval, func=True)
+        self.add_primitive(name, return_type, arg_types, category, semantics, pyspark_str, python_eval=python_eval, z3_rep=z3_rep, func=True)
 
         ## Date to String
         name = f"cast_from_date_to_string"
@@ -163,6 +170,7 @@ class CastFunctionRegistry(BasePrimitiveRegistry):
         #pyspark_str = lambda args: f"F.date_format({args[0]}, 'yyyy-MM-dd')"
 
         python_eval = lambda args, _: str(args[0])
+        z3_rep = f"date_to_str"
 
         semantics = FuncSemantics(
             name=f"cast_from_date_to_string",
@@ -170,7 +178,7 @@ class CastFunctionRegistry(BasePrimitiveRegistry):
             import_type=DateType.TYPE_DATE,
             weight=20
         )
-        self.add_primitive(name, return_type, arg_types, category, semantics, pyspark_str, python_eval=python_eval, func=True)
+        self.add_primitive(name, return_type, arg_types, category, semantics, pyspark_str, python_eval=python_eval, z3_rep=z3_rep, func=True)
 
         ### Date to Int
         name = f"cast_from_date_to_int"
@@ -182,6 +190,7 @@ class CastFunctionRegistry(BasePrimitiveRegistry):
         #pyspark_str = lambda args: f"F.date_format({args[0]}, 'yyyyMMdd').cast(t.IntegerType())"
 
         python_eval = lambda args, _: int(str(args[0]).replace('-', ''))
+        z3_rep = f"date_to_int"
 
         semantics = FuncSemantics(
             name=f"cast_from_date_to_int",
@@ -189,4 +198,4 @@ class CastFunctionRegistry(BasePrimitiveRegistry):
             import_type=DateType.TYPE_DATE,
             weight=20
         )
-        self.add_primitive(name, return_type, arg_types, category, semantics, pyspark_str, python_eval=python_eval, func=True)
+        self.add_primitive(name, return_type, arg_types, category, semantics, pyspark_str, python_eval=python_eval, z3_rep=z3_rep, func=True)

@@ -179,7 +179,7 @@ class MasterPrimitiveRegistry:
             column_flag=column_flag
         )
 
-        return Primitive(name, return_type, arg_types, category, semantics, pyspark_str, python_eval=None)
+        return Primitive(name, return_type, arg_types, category, semantics, pyspark_str, python_eval=None, z3_rep=literal)
 
 
     @log_step
