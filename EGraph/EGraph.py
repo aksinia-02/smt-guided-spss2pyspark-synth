@@ -37,6 +37,7 @@ class EGraph:
         self.root_id: int
 
         self.len_nodes = 0
+        self.merging_counter = 0
 
     # after merging two EClasses, we need to update the ENode children to their canonical representatives
     # replaces every child id with its leader id in the ENode children
@@ -70,10 +71,20 @@ class EGraph:
         if root1 == root2:
             return root1
 
+        self.merging_counter += 1
+
+        if root1 == 12 and root2 == 21:
+            print(self)
+
+        print('Merging EClasses Verifier', root1, 'and', root2)
+        # if self.merging_counter == 2:
+        #     raise Exception("Merging EClasses 9 and 18 is not allowed.")
         can_merge = Verifier.merge(self.V[root1], self.V[root2])
         
         if not can_merge:
             # Reject merge safely without corrupting Union-Find
+            if self.merging_counter == 4:
+                raise Exception("Merging EClasses 4 and 16 is not allowed.")
             return root1
 
         new_root = self.U.union(root1, root2)
@@ -87,6 +98,9 @@ class EGraph:
 
         if old_root in self.V:
             del self.V[old_root]
+
+        if self.merging_counter == 4:
+            raise Exception("Merging EClasses 4 and 16 is not allowed.")
         return new_root
 
     def fill_semanctic(self, eclass_id: int, enode: ENode):

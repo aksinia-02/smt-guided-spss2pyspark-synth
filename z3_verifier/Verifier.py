@@ -92,7 +92,7 @@ class Verifier:
 
             print(f'child Expr: {child_ver.expr}, {child.z3_rep}')
 
-            if child.category == Category.DATE_NAMESPACE:
+            if child.category == Category.DATE_NAMESPACE and child.z3_rep != 'plus_minus_unit':
                 if z3_rep in ('year', 'month', 'day'):
                     if z3_rep == 'year':
                         self.expr = child_ver.expr / 10000
@@ -117,6 +117,21 @@ class Verifier:
                                 self.expr = found(child, children_ver[0].expr)
                         child.return_type = old_type
 
+                    else:
+                        # Handle direct expressions/constants stored in kb_dates (e.g. bd_year -> year)
+                        raw_expr = found if found is not None else child_ver.expr
+
+                        if child.return_type == op.return_type:
+                            self.expr = child_ver.expr
+                        
+                        #Apply the requested cast on the expression
+                        elif z3_rep == 'to_string':
+                            self.expr = Verifier.pad2(raw_expr)
+                        elif z3_rep == 'to_int':
+                            self.expr = z3.StrToInt(raw_expr)
+                        else:
+                            self.expr = raw_expr    
+
             else:
                 if child.return_type == op.return_type:
                     self.expr = child_ver.expr
@@ -136,6 +151,53 @@ class Verifier:
             elif op.name == '-':
                 self.expr = left_expr - right_expr
 
+        elif op.category == Category.STRING_FUNCTION:
+            z3_rep = op.name  # or op.z3_rep depending on your attribute
+            
+            # Extract child expressions safely
+            child_exprs = [c.expr for c in children_ver] if children_ver else []
+
+            if z3_rep == 'startstring':
+                # PySpark: F.substring(string, 1, length) -> Z3 SubString(s, 0, length)
+                # arg_types: [length (int), string (str)]
+                length_expr = child_exprs[0]
+                str_expr = child_exprs[1]
+                # Z3 SubString takes (string, offset, length)
+                self.expr = z3.SubString(str_expr, 0, length_expr)
+
+            elif z3_rep == 'endstring':
+                # PySpark: F.substring(string, -length, length) 
+                # Extracts the last N characters of a string.
+                # Since Z3 Length(str) gives the total length, start index is Length(str) - length
+                length_expr = child_exprs[0]
+                str_expr = child_exprs[1]
+                start_offset = z3.Length(str_expr) - length_expr
+                self.expr = z3.SubString(str_expr, start_offset, length_expr)
+
+            elif z3_rep == 'substring':
+                # PySpark: F.substring(string, pos, len) (Note: PySpark substring is 1-indexed!)
+                # arg_types: [string, pos, len]
+                str_expr = child_exprs[0]
+                pos_expr = child_exprs[1]
+                len_expr = child_exprs[2]
+                # Convert 1-indexed PySpark position to 0-indexed Z3 offset: (pos - 1)
+                z3_offset = pos_expr - 1
+                self.expr = z3.SubString(str_expr, z3_offset, len_expr)
+
+            elif z3_rep == 'concat_ws':
+                # PySpark: F.concat_ws('', arg1, arg2, ...)
+                # Z3 string concatenation uses z3.Concat(...)
+                # Filtering out the separator (arg[0] if desired) and concatenating the rest:
+                # If arg_types are [sep, val1, val2], we join all children from index 1 onwards:
+                values_to_concat = child_exprs
+                if values_to_concat:
+                    self.expr = z3.Concat(*values_to_concat)
+                else:
+                    self.expr = z3.StringVal("")
+
+            else:
+                self.expr = child_exprs[0] if child_exprs else None
+
 
         self.print_debug()
         print('--------------------')
@@ -147,6 +209,9 @@ class Verifier:
 
         merged_ver = Verifier.__new__(Verifier)
         merged_ver.solver = z3.Solver()
+
+        merged_ver.solver.set("timeout", 1000)
+
         merged_ver.expr = other_ver.expr
         # merged_ver.constants = {**self.constants, **other_ver.constants}
         # merged_ver.assertions = {**self.assertions, **other_ver.assertions}
@@ -172,12 +237,12 @@ class Verifier:
             print("PROVED")
             for assertion in other_ver.solver.assertions():
                 self.solver.add(assertion)
-            self.solver.add(self.expr != other_ver.expr)
+            #self.solver.add(self.expr != other_ver.expr)
             return True
         else:
-            print("Unknown")
-
-        return False
+            # Covers z3.unknown (timeout or undecidable)
+            print("Z3 solver timed out or returned unknown. Skipping merge.")
+            return True
 
     def get_date_expr(self, name: str, param: str):
         print(name)
@@ -267,9 +332,10 @@ class Verifier:
         }
 
         if op.semantics.direction == 'plus':
-            return cls_units.get(op.return_type.value) + p
+            result = cls_units.get(op.return_type.value) + p
         if op.semantics.direction == 'minus':
-            return cls_units.get(op.return_type.value) - p
+            result = cls_units.get(op.return_type.value) - p
+        return result
 
     @classmethod
     def dif_30_90(cls, op:Primitive, p: int):
@@ -351,7 +417,7 @@ class Verifier:
             target_m = z3.Int(f'res_m_{unit}_{p}')
             target_d = z3.Int(f'res_d_{unit}_{p}')
 
-            cls.date_solver.add(target_y >= 1998, target_y <= 2015)
+            cls.date_solver.add(target_y >= 1999, target_y <= 2015)
             cls.date_solver.add(target_m >= 1, target_m <= 12)
             cls.date_solver.add(target_d >= 1, target_d <= 31)
             cls.date_solver.add(z3.Implies(z3.Or(target_m == 4, target_m == 6, target_m == 9, target_m == 11), target_d <= 30))

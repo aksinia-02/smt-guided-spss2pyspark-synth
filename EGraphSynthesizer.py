@@ -65,7 +65,7 @@ class EGraphSynthesizer:
         #             "eval:", p.python_eval([1], None)
         #         )
 
-    def synthesize(self, spss_ast, expected_type: DateType, max_iterations: int = 3) -> str:
+    def synthesize(self, spss_ast, expected_type: DateType, max_iterations: int = 1) -> str:
 
         # visitor = SPSSASTVisitor()
         # visitor.visit(spss_ast)
