@@ -86,6 +86,7 @@ class EGraphSynthesizer:
         logger.debug("##########       Rewrite EGraph       ##########")
         rewriter = RewriteRule(self.primitives)
         for _ in range(max_iterations):
+            print('start rewriting')
             logger.debug(f' new Graph {egraph}')
             print(f'new Graph {egraph}')
             if not rewriter.apply(egraph, self.primitives):
@@ -100,6 +101,10 @@ class EGraphSynthesizer:
 
         for item in expressions:
             print(item)
+
+        print(f'root_id: {result.get(root_id)}')
+        print(result)
+        print(root_id)
 
         return result.get(root_id)
 
@@ -130,7 +135,7 @@ class EGraphSynthesizer:
                 # print('Expected type')
                 # print(expected_type)
 
-                cast_func = self.primitives.match_type(best_prim.return_type, expected_type)
+                cast_func = self.primitives.match_type(best_prim.return_type, expected_type, data_rep=best_prim.semantics.date_rep)
                 log_list("Cast functions found", cast_func, level=logging.INFO)
                 cand_id = egraph.add(ENode(op=cast_func[0], children=(cand_id,)))
 

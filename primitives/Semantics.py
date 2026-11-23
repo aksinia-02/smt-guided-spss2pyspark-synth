@@ -24,6 +24,7 @@ class DateSemantics(BaseSemantics):
     amount: Optional[int] = None       # Fixed amount or None if dynamic
     jump: Optional[str] = None         # "last month", "last year", "month_start", etc.
     weight: int = 0
+    date_rep: bool = False
 
 
 @dataclass
@@ -32,6 +33,7 @@ class FuncSemantics(BaseSemantics):
     import_type: Optional[DateType] = None
     weight: int = 1000
     overwrite_format: bool = False
+    date_rep: bool = False
 
 @dataclass
 class StringSemantics(BaseSemantics):

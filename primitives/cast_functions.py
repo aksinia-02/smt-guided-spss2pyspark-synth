@@ -99,7 +99,8 @@ class CastFunctionRegistry(BasePrimitiveRegistry):
             name=f"cast_from_int_to_date",
             target_type=DateType.TYPE_DATE,
             import_type=DateType.TYPE_INT,
-            weight=20
+            weight=20,
+            date_rep = True
         )
         self.add_primitive(name, return_type, arg_types, category, semantics, pyspark_str, python_eval=python_eval, z3_rep=z3_rep, func=True)
 
@@ -118,7 +119,8 @@ class CastFunctionRegistry(BasePrimitiveRegistry):
             name=f"cast_from_int_to_string",
             target_type=DateType.TYPE_STRING,
             import_type=DateType.TYPE_INT,
-            weight=20
+            weight=20,
+            date_rep = True
         )
         self.add_primitive(name, return_type, arg_types, category, semantics, pyspark_str, python_eval=python_eval, z3_rep=z3_rep, func=True)
 
@@ -137,7 +139,8 @@ class CastFunctionRegistry(BasePrimitiveRegistry):
             name=f"cast_from_string_to_date",
             target_type=DateType.TYPE_DATE,
             import_type=DateType.TYPE_STRING,
-            weight=20
+            weight=20,
+            date_rep = True
         )
         self.add_primitive(name, return_type, arg_types, category, semantics, pyspark_str, python_eval=python_eval, z3_rep=z3_rep, func=True)
 
@@ -156,7 +159,8 @@ class CastFunctionRegistry(BasePrimitiveRegistry):
             name=f"cast_from_string_to_int",
             target_type=DateType.TYPE_INT,
             import_type=DateType.TYPE_STRING,
-            weight=20
+            weight=20,
+            date_rep = True
         )
         self.add_primitive(name, return_type, arg_types, category, semantics, pyspark_str, python_eval=python_eval, z3_rep=z3_rep, func=True)
 
@@ -176,7 +180,8 @@ class CastFunctionRegistry(BasePrimitiveRegistry):
             name=f"cast_from_date_to_string",
             target_type=DateType.TYPE_STRING,
             import_type=DateType.TYPE_DATE,
-            weight=20
+            weight=20,
+            date_rep = True
         )
         self.add_primitive(name, return_type, arg_types, category, semantics, pyspark_str, python_eval=python_eval, z3_rep=z3_rep, func=True)
 
@@ -196,6 +201,7 @@ class CastFunctionRegistry(BasePrimitiveRegistry):
             name=f"cast_from_date_to_int",
             target_type=DateType.TYPE_INT,
             import_type=DateType.TYPE_DATE,
-            weight=20
+            weight=20,
+            date_rep = True
         )
         self.add_primitive(name, return_type, arg_types, category, semantics, pyspark_str, python_eval=python_eval, z3_rep=z3_rep, func=True)

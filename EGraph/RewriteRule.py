@@ -19,64 +19,78 @@ class RewriteRule:
         for eclass_id, enodes in list(egraph.M.items()):
             semantic = egraph.S[eclass_id]
 
-            for enode in enodes:
-                if enode.op.category == Category.STRING_FUNCTION:
-                    logger.debug(f"Entering first rule | Node: {enode}")
+            #for enode in enodes:
+            enode = next(iter(enodes))
+            if enode.op.category == Category.STRING_FUNCTION:
+                logger.debug(f"Entering first rule | Node: {enode}")
 
-                    children_sem, children_ids = egraph.get_date_semantic_children_values(eclass_id)
-                    logger.debug(f"Children: {children_sem}, ids: {children_ids}")
-                    results = self.primitives.find_semantic_over_date_primitives(semantic, children_sem)
+                eclass_id = egraph.U.find(eclass_id)
+                print(f'canonical eclass_id: {eclass_id}')
 
-                    for eq_prims, param_flag in results:
+                children_sem, children_ids = egraph.get_date_semantic_children_values(eclass_id)
+                logger.debug(f"Children: {children_sem}, ids: {children_ids}")
+                results = self.primitives.find_semantic_over_date_primitives(semantic, children_sem, next(iter(egraph.M[eclass_id])).op.semantics.date_rep)
+                print(f'Enode: {enode} | Children: {children_sem}, ids: {children_ids} | Results: {results}')
 
-                        n = len(eq_prims)
+                for eq_prims, param_flag in results:
 
-                        if n > 0:
-                            changed = True
-                            if param_flag:
-                                child_id = egraph.add(ENode(op=eq_prims[0], children=(children_ids[0],)))
-                            else:
-                                child_id = egraph.add(ENode(op=eq_prims[0], children=()))
+                    n = len(eq_prims)
 
-                            if n == 1:
-                                egraph.merge(eclass_id, child_id)
-                            else:
-                                cast_id = egraph.add(ENode(op=eq_prims[1], children=(child_id,)))
-                                egraph.merge(eclass_id, cast_id)
-
-                if enode.op.category == Category.CAST_TYPE:
-                    logger.debug(f"Entering second rule | Node: {enode}")
-
-                    child_id = enode.children[0]
-                    canon_id = egraph.U.find(child_id)
-                    child = next(iter(egraph.M.get(canon_id)))
-                    child_type = child.op.return_type
-
-                    if child_type == enode.op.return_type:
+                    if n > 0:
                         changed = True
-                        egraph.merge(eclass_id, child_id)
+                        if param_flag:
+                            child_id = egraph.add(ENode(op=eq_prims[0], children=(children_ids[0],)))
+                        else:
+                            child_id = egraph.add(ENode(op=eq_prims[0], children=()))
 
-                if enode.op.category == Category.CAST_TYPE:
-                    logger.debug(f"Entering third rule | Node: {enode}")
+                        if n == 1:
+                            egraph.merge(eclass_id, child_id)
+                        else:
+                            cast_id = egraph.add(ENode(op=eq_prims[1], children=(child_id,)))
+                            egraph.merge(eclass_id, cast_id)
+
+            if enode.op.category == Category.CAST_TYPE:
+                logger.debug(f"Entering second rule | Node: {enode}")
+
+                child_id = enode.children[0]
+                canon_id = egraph.U.find(child_id)
+                child = next(iter(egraph.M.get(canon_id)))
+                child_type = child.op.return_type
+
+                if child_type == enode.op.return_type:
+                    changed = True
+                    egraph.merge(eclass_id, child_id)
+
+            if enode.op.category == Category.CAST_TYPE:
+                logger.debug(f"Entering third rule | Node: {enode}")
+
+                eclass_id = egraph.U.find(eclass_id)
+                print(f'canonical eclass_id: {eclass_id}')
+            
+                children_sem, children_ids = egraph.get_date_semantic_children_values(eclass_id)
+                logger.debug(f"Children: {children_sem}, ids: {children_ids}")
+
+                print('hello')
+                print(eclass_id)
+                print(egraph)
                 
-                    children_sem, children_ids = egraph.get_date_semantic_children_values(eclass_id)
-                    logger.debug(f"Children: {children_sem}, ids: {children_ids}")
-                    results = self.primitives.find_semantic_over_date_primitives(semantic, children_sem)
+                results = self.primitives.find_semantic_over_date_primitives(semantic, children_sem, next(iter(egraph.M[eclass_id])).op.semantics.date_rep)
+                print(f'Enode: {enode} |  Children: {children_sem}, ids: {children_ids} | Results: {results}')
 
-                    for eq_prims, param_flag in results:
+                for eq_prims, param_flag in results:
 
-                        n = len(eq_prims)
-                        if n > 0:
-                            changed = True
-                            if param_flag:
-                                child_id = egraph.add(ENode(op=eq_prims[0], children=(children_ids[0],)))
-                            else:
-                                child_id = egraph.add(ENode(op=eq_prims[0], children=()))
-                            if n == 1:
-                                egraph.merge(eclass_id, child_id)
-                            else:
-                                cast_id = egraph.add(ENode(op=eq_prims[1], children=(child_id,)))
-                                egraph.merge(eclass_id, cast_id)
+                    n = len(eq_prims)
+                    if n > 0:
+                        changed = True
+                        if param_flag:
+                            child_id = egraph.add(ENode(op=eq_prims[0], children=(children_ids[0],)))
+                        else:
+                            child_id = egraph.add(ENode(op=eq_prims[0], children=()))
+                        if n == 1:
+                            egraph.merge(eclass_id, child_id)
+                        else:
+                            cast_id = egraph.add(ENode(op=eq_prims[1], children=(child_id,)))
+                            egraph.merge(eclass_id, cast_id)
 
         
         return changed

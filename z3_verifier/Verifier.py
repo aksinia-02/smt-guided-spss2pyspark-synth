@@ -17,7 +17,7 @@ class Verifier:
 
     base_date_id = year * 365 + month * 30 + day
 
-    date_solver.add(year >= 1998, year <= 2015)
+    date_solver.add(year >= 1999, year <= 2015)
     date_solver.add(month >= 1, month <= 12)
     date_solver.add(day >= 1, day <= 31)
 
@@ -52,6 +52,66 @@ class Verifier:
         if Verifier.date_solver.check() == z3.sat:
             date_model = Verifier.date_solver.model()
             print("Date Model values:", date_model)
+
+    @classmethod
+    def iso_str_to_yyyymmdd_int(cls, s_expr):
+        """Converts a 'yyyy-MM-dd' Z3 String expression into a yyyyMMdd Z3 Int expression."""
+        y_int = z3.StrToInt(z3.SubString(s_expr, 0, 4))
+        m_int = z3.StrToInt(z3.SubString(s_expr, 5, 2))
+        d_int = z3.StrToInt(z3.SubString(s_expr, 8, 2))
+        return y_int * 10000 + m_int * 100 + d_int
+
+    @classmethod
+    def yyyymmdd_int_to_iso_str(cls, n_expr):
+        """Converts a yyyyMMdd Z3 Int expression into a 'yyyy-MM-dd' Z3 String expression."""
+        y_int = n_expr / 10000
+        m_int = (n_expr / 100) % 100
+        d_int = n_expr % 100
+        return cls.date_to_iso(y_int, m_int, d_int)
+
+    @classmethod
+    def apply_cast(cls, z3_rep: str, expr, child_expr=None):
+        target = expr if expr is not None else child_expr
+
+        if z3_rep == "int_to_str":
+            # yyyyMMdd int (or string) -> 'yyyy-MM-dd' string
+            if z3.is_int(target):
+                return cls.yyyymmdd_int_to_iso_str(target)
+            return z3.Concat(
+                z3.SubString(target, 0, 4),
+                z3.StringVal("-"),
+                z3.SubString(target, 4, 2),
+                z3.StringVal("-"),
+                z3.SubString(target, 6, 2),
+            )
+
+        elif z3_rep == "str_to_date":
+            # 'yyyy-MM-dd' string -> date representation in Z3
+            return target
+
+        elif z3_rep == "str_to_int":
+            # 'yyyy-MM-dd' string -> yyyyMMdd int
+            return cls.iso_str_to_yyyymmdd_int(target)
+
+        elif z3_rep == "date_to_str":
+            # date ('yyyy-MM-dd' in Z3) -> 'yyyy-MM-dd' string
+            if z3.is_int(target):
+                return cls.yyyymmdd_int_to_iso_str(target)
+            return target
+
+        elif z3_rep == "date_to_int":
+            # date ('yyyy-MM-dd' in Z3) -> yyyyMMdd int
+            if z3.is_int(target):
+                return target
+            return cls.iso_str_to_yyyymmdd_int(target)
+
+        elif z3_rep == "to_string":
+            return cls.pad2(target) if z3.is_int(target) else target
+
+        elif z3_rep == "to_int":
+            return z3.StrToInt(target) if z3.is_string(target) else target
+
+        return None
 
     def add_variable(self, op: Primitive, children_ver, children_nodes):
         print('--------------------')
@@ -101,36 +161,47 @@ class Verifier:
                     elif z3_rep == 'day':
                         self.expr = child_ver.expr % 100
                 else:
-                    found = Verifier.kb_dates.get(child.z3_rep)
-                    print(f'Found for casting: {found}')
-
-                    if callable(found):
-                        old_type = child.return_type
-                        child.return_type = op.return_type
-
-                        if child.z3_rep == 'bd':
-                            self.expr = found(Verifier.year * 10000 + Verifier.month * 100 + Verifier.day, child.return_type.value)
-                        else:
-                            if child.z3_rep == 'dif_30_90':
-                                self.expr = found(child, child.semantics.amount)
-                            else:
-                                self.expr = found(child, children_ver[0].expr)
-                        child.return_type = old_type
-
+                    if child.return_type == op.return_type:
+                        self.expr = child_ver.expr
                     else:
-                        # Handle direct expressions/constants stored in kb_dates (e.g. bd_year -> year)
-                        raw_expr = found if found is not None else child_ver.expr
-
-                        if child.return_type == op.return_type:
-                            self.expr = child_ver.expr
-                        
-                        #Apply the requested cast on the expression
-                        elif z3_rep == 'to_string':
-                            self.expr = Verifier.pad2(raw_expr)
-                        elif z3_rep == 'to_int':
-                            self.expr = z3.StrToInt(raw_expr)
+                        casted = Verifier.apply_cast(z3_rep, child_ver.expr, child_ver.expr)
+                        if casted is not None:
+                            self.expr = casted
                         else:
-                            self.expr = raw_expr    
+                            print(f"Unhandled cast operation: {op.name} with z3_rep: {z3_rep}")
+                            self.expr = child_ver.expr
+            #         found = Verifier.kb_dates.get(child.z3_rep)
+            #         print(f'Found for casting: {found}')
+
+            #         if callable(found):
+            #             old_type = child.return_type
+            #             child.return_type = op.return_type
+
+            #             if child.z3_rep == 'bd':
+            #                 self.expr = found(Verifier.year * 10000 + Verifier.month * 100 + Verifier.day, child.return_type.value)
+            #             else:
+            #                 if child.z3_rep == 'dif_30_90':
+            #                     self.expr = found(child, child.semantics.amount)
+            #                 else:
+            #                     self.expr = found(child, children_ver[0].expr)
+            #             child.return_type = old_type
+            #             print(f'callable found for casting: {self.expr}')
+
+            #         else:
+            #             # Handle direct expressions/constants stored in kb_dates (e.g. bd_year -> year)
+            #             raw_expr = found if found is not None else child_ver.expr
+
+            #             if child.return_type == op.return_type:
+            #                 self.expr = child_ver.expr
+                        
+            #             #Apply the requested cast on the expression
+            #             elif z3_rep == 'to_string':
+            #                 self.expr = Verifier.pad2(raw_expr)
+            #             elif z3_rep == 'to_int':
+            #                 self.expr = z3.StrToInt(raw_expr)
+            #             else:
+            #                 print(f"Unhandled cast operation: {op.name} with z3_rep: {z3_rep}")
+            #                 self.expr = raw_expr    
 
             else:
                 if child.return_type == op.return_type:
@@ -225,6 +296,10 @@ class Verifier:
         for assertion in self.solver.assertions():
             merged_ver.solver.add(assertion)
 
+        # print('added assertions from self and other_ver to merged_ver.solver')
+        # print(f"self.expr: {self.expr}")
+        # print(f"other_ver.expr: {other_ver.expr}")
+
         merged_ver.solver.add(self.expr != other_ver.expr)
         
         result = merged_ver.solver.check()
@@ -268,9 +343,10 @@ class Verifier:
         if d_type == 'int':
             return yyyymmdd_int
         elif d_type == 'str':
-            return cls.date_to_yyyymmdd_str(yyyymmdd_int)
+            return cls.date_to_yyyy_mm_dd(yyyymmdd_int) #date_to_yyyymmdd_str
         elif d_type == 'date':
             return cls.date_to_yyyy_mm_dd(yyyymmdd_int)
+        raise ValueError(f"Unsupported cast target type: {d_type!r}")
         
     @classmethod
     def build_kb_dates(cls):

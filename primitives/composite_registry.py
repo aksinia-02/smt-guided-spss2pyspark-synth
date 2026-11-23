@@ -183,7 +183,7 @@ class MasterPrimitiveRegistry:
 
 
     @log_step
-    def match_type(self, return_type: DateType, expected_type: PrimitiveType, default_string: bool = True, strich: bool = False):
+    def match_type(self, return_type: DateType, expected_type: PrimitiveType, data_rep: bool = False, default_string: bool = True, strich: bool = False):
         if return_type.eq_exact(expected_type):
             print(f"\nCandidate matches expected type")
             return None
@@ -201,6 +201,12 @@ class MasterPrimitiveRegistry:
                     #if isinstance(func.return_type, PrimitiveType)
                 ]
 
+            if data_rep:
+                matching_casts = [
+                    func for func in matching_casts
+                    if func.semantics.date_rep
+                ]
+
             if strich:
                 matching_casts = [
                     func for func in matching_casts
@@ -211,7 +217,7 @@ class MasterPrimitiveRegistry:
             return matching_casts
 
     @log_step
-    def find_semantic_over_date_primitives(self, semantic, children):
+    def find_semantic_over_date_primitives(self, semantic, children, data_rep):
 
         # print(f'length: {len(self.date_primitives)}')
 
@@ -251,23 +257,26 @@ class MasterPrimitiveRegistry:
                 # print('start to find cast')
                 # print(result)
                 # print(semantic)
-                strich = PrimitiveType.TYPE_STRING == result[0] or PrimitiveType.TYPE_DATE == result[0]
-                cast_funcs = self.match_type(result[0], semantic[0], strich= strich)
+                #strich = PrimitiveType.TYPE_STRING == result[0] or PrimitiveType.TYPE_DATE == result[0]
+                #print(f'Looking for cast functions to convert {result} to {semantic}, {data_rep}.')
+                cast_funcs = self.match_type(result[0], semantic[0], data_rep) #, strich= strich)
                 #print(len(cast_funcs))
 
                 for cast_func in cast_funcs:
-                    cast_result = cast_func.get_semantic_prim([result[1]])
-                    #print(f'cast result: {cast_result}')
+                    #print(f'{date_prim.semantics.date_rep} | {cast_func.semantics.date_rep}')
+                    if date_prim.semantics.date_rep == cast_func.semantics.date_rep:
+                        cast_result = cast_func.get_semantic_prim([result[1]])
+                        #print(f'cast result: {cast_result}')
 
-                    if cast_result == semantic:
-                        # print('FOUND')
-                        # print(cast_result)
-                        # print('FOR')
-                        # print(semantic)
-                        results.add(((date_prim, cast_func), param_flag))
-                        #return [date_prim, cast_func], param_flag
-                    # print('11111111111111')
-                    # print(result)
-                    # if semantic == result:
-                    #     print('FOund')
+                        if cast_result == semantic:
+                            # print('FOUND')
+                            # print(cast_result)
+                            # print('FOR')
+                            # print(semantic)
+                            results.add(((date_prim, cast_func), param_flag))
+                            #return [date_prim, cast_func], param_flag
+                        # print('11111111111111')
+                        # print(result)
+                        # if semantic == result:
+                        #     print('FOund')
         return results

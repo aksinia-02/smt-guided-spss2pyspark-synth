@@ -24,7 +24,7 @@ def test_re_expressions(file_paths):
                 parser.print_ast(ast)
 
                 synthesizer = EGraphSynthesizer(SPSSDateParamDecoder(), SemanticMatcher())
-                result = synthesizer.synthesize(ast, PrimitiveType.get_type_by_value(exp_type), max_iterations=3)
+                result = synthesizer.synthesize(ast, PrimitiveType.get_type_by_value(exp_type), max_iterations=1)
 
                 print(result[1])
 

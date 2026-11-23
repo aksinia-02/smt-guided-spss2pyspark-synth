@@ -65,6 +65,33 @@ class EGraph:
 
         return eclass_id
 
+    def rebuild(self):
+        new_h: Dict[ENode, int] = {}
+        new_m: Dict[int, Set[ENode]] = {}
+        pending_merges = []
+
+        for eclass_id, nodes in list(self.M.items()):
+            canon_cid = self.U.find(eclass_id)
+            new_m.setdefault(canon_cid, set())
+
+            for node in nodes:
+                canon_node = self.canonicalize(node)
+                new_m[canon_cid].add(canon_node)
+
+                if canon_node in new_h:
+                    existing_cid = self.U.find(new_h[canon_node])
+                    if existing_cid != canon_cid:
+                        pending_merges.append((existing_cid, canon_cid))
+                else:
+                    new_h[canon_node] = canon_cid
+
+        self.H = new_h
+        self.M = {cid: ns for cid, ns in new_m.items() if self.U.find(cid) == cid and ns}
+
+        for a, b in pending_merges:
+            if self.U.find(a) != self.U.find(b):
+                self.merge(a, b)
+
     def merge(self, id1: int, id2: int) -> int:
         root1 = self.U.find(id1)
         root2 = self.U.find(id2)
@@ -76,6 +103,7 @@ class EGraph:
         if root1 == 12 and root2 == 21:
             print(self)
 
+        print(self)
         print('Merging EClasses Verifier', root1, 'and', root2)
         # if self.merging_counter == 2:
         #     raise Exception("Merging EClasses 9 and 18 is not allowed.")
@@ -83,7 +111,7 @@ class EGraph:
         
         if not can_merge:
             # Reject merge safely without corrupting Union-Find
-            if self.merging_counter == 4:
+            if self.merging_counter == 7:
                 raise Exception("Merging EClasses 4 and 16 is not allowed.")
             return root1
 
@@ -99,8 +127,33 @@ class EGraph:
         if old_root in self.V:
             del self.V[old_root]
 
-        if self.merging_counter == 4:
+        if self.merging_counter == 7:
             raise Exception("Merging EClasses 4 and 16 is not allowed.")
+
+        # # 1. Move and canonicalize ENodes into new_root
+        # combined_nodes = set()
+        # for node in self.M.get(new_root, set()) | self.M.get(old_root, set()):
+        #     canon_node = self.canonicalize(node)
+        #     combined_nodes.add(canon_node)
+        #     self.H[canon_node] = new_root
+
+        # self.M[new_root] = combined_nodes
+        # self.M.pop(old_root, None)
+
+        # # 2. Keep S and class_data aligned with new_root
+        # if new_root not in self.S and old_root in self.S:
+        #     self.S[new_root] = self.S[old_root]
+        # self.S.pop(old_root, None)
+
+        # if new_root not in self.class_data and old_root in self.class_data:
+        #     self.class_data[new_root] = self.class_data[old_root]
+        # self.class_data.pop(old_root, None)
+
+        # self.V.pop(old_root, None)
+
+        # # 3. Repair parent nodes / hashcons collisions (congruence)
+        # self.rebuild()
+
         return new_root
 
     def fill_semanctic(self, eclass_id: int, enode: ENode):

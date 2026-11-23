@@ -92,6 +92,9 @@ class DatePrimitiveRegistry(BasePrimitiveRegistry):
 
 
         for type in [DateType.TYPE_DATE, DateType.TYPE_STRING, DateType.TYPE_INT]:
+
+            date_rep = False if type.eq_exact(DateType.TYPE_INT) else True
+
             name = f"D.as_{type.value}.BD"
             return_type = type
             arg_types = []
@@ -106,7 +109,8 @@ class DatePrimitiveRegistry(BasePrimitiveRegistry):
                 direction=None,
                 unit=None,
                 amount=None,
-                jump=None
+                jump=None,
+                date_rep=date_rep
             )
             self.add_primitive(name, return_type, arg_types, category, semantics, pyspark_str, python_eval, z3_rep=f"bd")
 
@@ -126,13 +130,17 @@ class DatePrimitiveRegistry(BasePrimitiveRegistry):
                         direction=direction,
                         unit=DateUnit.DAY,
                         amount=amount,
-                        jump=None
+                        jump=None,
+                        date_rep=date_rep
                     )
                     self.add_primitive(name, return_type, arg_types, category, semantics, pyspark_str, python_eval, z3_rep=f"dif_30_90")
                 
         for unit in [DateUnit.MONTH, DateUnit.YEAR]:
             for jump in ["start", "end"]:
                 for type in [DateType.TYPE_DATE, DateType.TYPE_STRING, DateType.TYPE_INT]:
+
+                    date_rep = False if type.eq_exact(DateType.TYPE_INT) else True
+
                     name = f"D.as_{type.value}.{unit.value}_{jump}"
                     return_type = type
                     arg_types = []
@@ -147,7 +155,8 @@ class DatePrimitiveRegistry(BasePrimitiveRegistry):
                         direction=None,
                         unit=None,
                         amount=None,
-                        jump=f"{jump} {unit.value}"
+                        jump=f"{jump} {unit.value}",
+                        date_rep=date_rep
                     )
 
                     self.add_primitive(name, return_type, arg_types, category, semantics, pyspark_str, python_eval, z3_rep=f"unit_end_start")
@@ -155,6 +164,9 @@ class DatePrimitiveRegistry(BasePrimitiveRegistry):
         for direction in ["plus", "minus"]:
             for unit in [DateUnit.DAY, DateUnit.WEEK, DateUnit.MONTH, DateUnit.YEAR]:
                 for type in [DateType.TYPE_DATE, DateType.TYPE_STRING, DateType.TYPE_INT]:
+
+                    date_rep = False if type.eq_exact(DateType.TYPE_INT) else True
+
                     name = f"D.as_{type.value}.{direction}_{unit.value}"
                     return_type = type
                     arg_types = [(DateType.TYPE_INT, False)]
@@ -173,7 +185,8 @@ class DatePrimitiveRegistry(BasePrimitiveRegistry):
                         direction=direction,
                         unit=unit,
                         amount=None,
-                        jump=None
+                        jump=None,
+                        date_rep=date_rep
                     )
                     self.add_primitive(name, return_type, arg_types, category, semantics, pyspark_str, python_eval, z3_rep=f"unit_plus_minus")
         
@@ -181,6 +194,9 @@ class DatePrimitiveRegistry(BasePrimitiveRegistry):
             for direction in ["minus"]: #"plus", 
                 for jump in ["start", "end"]:
                     for type in [DateType.TYPE_DATE, DateType.TYPE_STRING, DateType.TYPE_INT]:
+
+                        date_rep = False if type.eq_exact(DateType.TYPE_INT) else True
+
                         name = f"D.as_{type.value}.{direction}_{unit}_{jump}"
                         return_type = type
                         arg_types = [(DateType.TYPE_INT, False)] if unit == DateUnit.MONTH else []
@@ -191,7 +207,8 @@ class DatePrimitiveRegistry(BasePrimitiveRegistry):
                             direction=direction,
                             unit=unit,
                             amount=None,
-                            jump=f"{jump} {unit}"
+                            jump=f"{jump} {unit}",
+                            date_rep=date_rep
                         )
                         def create_eval(dt, d, u, j):
                             def eval_fn(args, _):
@@ -207,6 +224,7 @@ class DatePrimitiveRegistry(BasePrimitiveRegistry):
                             pyspark_str = f"D.as_{type.value}.{direction}_{unit.value}_{jump}"
                             python_eval = create_eval(type, direction, unit.value, jump)
                         self.add_primitive(name, return_type, arg_types, category, semantics, pyspark_str, python_eval, z3_rep=f"unit_plus_minus_end_start")
+                        
         for direction in ["plus", "minus"]:
             name = f"D.as_intYM.{direction}_month"
             return_type = DateType.TYPE_INT_YM
