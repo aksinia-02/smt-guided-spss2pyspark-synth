@@ -16,7 +16,7 @@ class CastFunctionRegistry(BasePrimitiveRegistry):
 
         ## Int to String any format #TODO add another casting for any format
         name = f"to_string"
-        return_type = PrimitiveType.TYPE_STRING
+        return_type = (PrimitiveType.TYPE_STRING, True)
         arg_types = [(PrimitiveType.TYPE_ANY, True)]
         category = Category.CAST_TYPE
 
@@ -35,7 +35,7 @@ class CastFunctionRegistry(BasePrimitiveRegistry):
         self.add_primitive(name, return_type, arg_types, category, semantics, pyspark_str, python_eval=python_eval, z3_rep=z3_rep, func=True)
 
         name = f"to_integer"
-        return_type = PrimitiveType.TYPE_INT
+        return_type = (PrimitiveType.TYPE_INT, True)
         arg_types = [(PrimitiveType.TYPE_ANY, True)]
         category = Category.CAST_TYPE
 
@@ -57,7 +57,7 @@ class CastFunctionRegistry(BasePrimitiveRegistry):
         for type in [DateType.TYPE_YEAR, DateType.TYPE_MONTH, DateType.TYPE_DAY]:
         
             name = f"F.{type.value}()"
-            return_type = type
+            return_type = (type, True)
             arg_types = [(PrimitiveType.TYPE_DATE, True)]
             category = Category.CAST_TYPE
     
@@ -86,7 +86,7 @@ class CastFunctionRegistry(BasePrimitiveRegistry):
 
         ## Int to Date
         name = f"cast_from_int_to_date"
-        return_type = DateType.TYPE_DATE
+        return_type = (DateType.TYPE_DATE, True)
         arg_types = [(DateType.TYPE_INT, True)]
         category = Category.CAST_TYPE
 
@@ -106,7 +106,7 @@ class CastFunctionRegistry(BasePrimitiveRegistry):
 
         ## Int to String
         name = f"cast_from_int_to_string"
-        return_type = DateType.TYPE_STRING
+        return_type = (DateType.TYPE_STRING, True)
         arg_types = [(DateType.TYPE_INT, True)]
         category = Category.CAST_TYPE
 
@@ -126,7 +126,7 @@ class CastFunctionRegistry(BasePrimitiveRegistry):
 
         ## String to Date
         name = f"cast_from_string_to_date"
-        return_type = DateType.TYPE_DATE
+        return_type = (DateType.TYPE_DATE, True)
         arg_types = [(DateType.TYPE_STRING, True)]
         category = Category.CAST_TYPE
 
@@ -146,7 +146,7 @@ class CastFunctionRegistry(BasePrimitiveRegistry):
 
         ## String to Int
         name = f"cast_from_string_to_int"
-        return_type = DateType.TYPE_INT
+        return_type = (DateType.TYPE_INT, True)
         arg_types = [(DateType.TYPE_STRING, True)]
         category = Category.CAST_TYPE
 
@@ -166,7 +166,7 @@ class CastFunctionRegistry(BasePrimitiveRegistry):
 
         ## Date to String
         name = f"cast_from_date_to_string"
-        return_type = DateType.TYPE_STRING
+        return_type = (DateType.TYPE_STRING, True)
         arg_types = [(DateType.TYPE_DATE, True)]
         category = Category.CAST_TYPE
 
@@ -187,7 +187,7 @@ class CastFunctionRegistry(BasePrimitiveRegistry):
 
         ### Date to Int
         name = f"cast_from_date_to_int"
-        return_type = DateType.TYPE_INT
+        return_type = (DateType.TYPE_INT, True)
         arg_types = [(DateType.TYPE_DATE, True)]
         category = Category.CAST_TYPE
 

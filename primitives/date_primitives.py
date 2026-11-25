@@ -21,7 +21,7 @@ class DatePrimitiveRegistry(BasePrimitiveRegistry):
 
     def init_dateprimitives(self) -> None:
         name = f"D.as_intYM.current_month"
-        return_type = DateType.TYPE_INT_YM
+        return_type = (DateType.TYPE_INT_YM, False)
         arg_types = []
         category = Category.DATE_NAMESPACE
 
@@ -41,7 +41,7 @@ class DatePrimitiveRegistry(BasePrimitiveRegistry):
 
         for type in [DateType.TYPE_YEAR, DateType.TYPE_MONTH, DateType.TYPE_DAY]:
             name = f"D.as_date.BD.{type.value}"
-            return_type = type
+            return_type = (type, False)
             arg_types = []
             category = Category.DATE_NAMESPACE
     
@@ -70,7 +70,7 @@ class DatePrimitiveRegistry(BasePrimitiveRegistry):
                 plus_minus = "+" if direction == "plus" else "-"
         
                 name = f"D.as_date.BD.{type.value}_{plus_minus}"
-                return_type = type
+                return_type = (type, False)
                 arg_types = [(DateType.TYPE_INT, False)]
                 category = Category.DATE_NAMESPACE
         
@@ -96,7 +96,7 @@ class DatePrimitiveRegistry(BasePrimitiveRegistry):
             date_rep = False if type.eq_exact(DateType.TYPE_INT) else True
 
             name = f"D.as_{type.value}.BD"
-            return_type = type
+            return_type = (type, False)
             arg_types = []
             category = Category.DATE_NAMESPACE
 
@@ -117,7 +117,7 @@ class DatePrimitiveRegistry(BasePrimitiveRegistry):
             for amount in [30, 60, 90]:
                 for direction in [ "minus"]: #"plus",
                     name = f"D.as_{type.value}.{direction}_{amount}days"
-                    return_type = type
+                    return_type = (type, False)
                     arg_types = []
                     category = Category.DATE_NAMESPACE
 
@@ -142,7 +142,7 @@ class DatePrimitiveRegistry(BasePrimitiveRegistry):
                     date_rep = False if type.eq_exact(DateType.TYPE_INT) else True
 
                     name = f"D.as_{type.value}.{unit.value}_{jump}"
-                    return_type = type
+                    return_type = (type, False)
                     arg_types = []
                     category = Category.DATE_NAMESPACE
 
@@ -168,7 +168,7 @@ class DatePrimitiveRegistry(BasePrimitiveRegistry):
                     date_rep = False if type.eq_exact(DateType.TYPE_INT) else True
 
                     name = f"D.as_{type.value}.{direction}_{unit.value}"
-                    return_type = type
+                    return_type = (type, False)
                     arg_types = [(DateType.TYPE_INT, False)]
                     category = Category.DATE_NAMESPACE
 
@@ -198,7 +198,7 @@ class DatePrimitiveRegistry(BasePrimitiveRegistry):
                         date_rep = False if type.eq_exact(DateType.TYPE_INT) else True
 
                         name = f"D.as_{type.value}.{direction}_{unit}_{jump}"
-                        return_type = type
+                        return_type = (type, False)
                         arg_types = [(DateType.TYPE_INT, False)] if unit == DateUnit.MONTH else []
                         category = Category.DATE_NAMESPACE
                         semantics = DateSemantics(
@@ -227,7 +227,7 @@ class DatePrimitiveRegistry(BasePrimitiveRegistry):
                         
         for direction in ["plus", "minus"]:
             name = f"D.as_intYM.{direction}_month"
-            return_type = DateType.TYPE_INT_YM
+            return_type = (DateType.TYPE_INT_YM, False)
             arg_types = [(DateType.TYPE_INT, False)]
             category = Category.DATE_NAMESPACE
 

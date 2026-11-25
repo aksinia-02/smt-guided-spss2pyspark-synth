@@ -55,9 +55,9 @@ class RewriteRule:
                 child_id = enode.children[0]
                 canon_id = egraph.U.find(child_id)
                 child = next(iter(egraph.M.get(canon_id)))
-                child_type = child.op.return_type
+                child_type = child.op.return_type[0]
 
-                if child_type == enode.op.return_type:
+                if child_type == enode.op.return_type[0]:
                     changed = True
                     egraph.merge(eclass_id, child_id)
 

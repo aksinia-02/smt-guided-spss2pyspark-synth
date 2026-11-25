@@ -57,7 +57,7 @@ class Date_Verifier:
         print(children)
 
         if op.category == Category.LITERAL:
-            if op.return_type == PrimitiveType.TYPE_INT:
+            if op.return_type[0] == PrimitiveType.TYPE_INT:
                 self.expr = z3.IntVal(op.z3_rep)
             else:
                 self.expr = z3.StringVal(op.z3_rep)

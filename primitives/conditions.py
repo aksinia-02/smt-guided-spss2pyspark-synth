@@ -14,7 +14,7 @@ class ConditionsRegistry(BasePrimitiveRegistry):
     def init_conditions(self) -> None:
 
         name = f"is_null"
-        return_type = PrimitiveType.TYPE_BOOLEAN
+        return_type = (PrimitiveType.TYPE_BOOLEAN, True)
         arg_types = [(PrimitiveType.TYPE_ANY, True)]
         category = Category.CONDITION
 
@@ -29,7 +29,7 @@ class ConditionsRegistry(BasePrimitiveRegistry):
         self.add_primitive(name, return_type, arg_types, category, semantics, pyspark_str, python_eval=None, func=True)
 
         name = f"is_not_null"
-        return_type = PrimitiveType.TYPE_BOOLEAN
+        return_type = (PrimitiveType.TYPE_BOOLEAN, True)
         arg_types = [(PrimitiveType.TYPE_ANY, True)]
         category = Category.CONDITION
 
@@ -44,8 +44,8 @@ class ConditionsRegistry(BasePrimitiveRegistry):
         self.add_primitive(name, return_type, arg_types, category, semantics, pyspark_str, python_eval=None, func=True)
 
         name = f"="
-        return_type = PrimitiveType.TYPE_BOOLEAN
-        arg_types = [(PrimitiveType.TYPE_INT, True), (PrimitiveType.TYPE_INT, True)]
+        return_type = (PrimitiveType.TYPE_BOOLEAN, True)
+        arg_types = [(PrimitiveType.TYPE_INT, None), (PrimitiveType.TYPE_INT, None)]
         category = Category.ARITHMETIC
 
         pyspark_str = f"{{0}}.eqNullSafe({{1}})"
@@ -59,8 +59,8 @@ class ConditionsRegistry(BasePrimitiveRegistry):
         self.add_primitive(name, return_type, arg_types, category, semantics, pyspark_str, func=True)
 
         for op in [">", "<", ">=", "<="]:
-            return_type = PrimitiveType.TYPE_BOOLEAN
-            arg_types = [(PrimitiveType.TYPE_INT, False), (PrimitiveType.TYPE_INT, False)]
+            return_type = (PrimitiveType.TYPE_BOOLEAN, True)
+            arg_types = [(PrimitiveType.TYPE_INT, None), (PrimitiveType.TYPE_INT, None)]
             category = Category.ARITHMETIC
 
             pyspark_str = f"{{0}} {op} {{1}}"
@@ -80,7 +80,7 @@ class ConditionsRegistry(BasePrimitiveRegistry):
 
         for bool_cond in ['and', 'or', 'not']:
             name = f"{bool_cond}"
-            return_type = PrimitiveType.TYPE_BOOLEAN
+            return_type = (PrimitiveType.TYPE_BOOLEAN, True)
             if bool_cond == 'not':
                 arg_types = [(PrimitiveType.TYPE_BOOLEAN, True)]
             else:

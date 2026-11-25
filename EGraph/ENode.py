@@ -19,15 +19,9 @@ class ENode:
 
         return self.op.get_semantic(params)
 
-    def _render(self, child_strings):
+    def _render(self, child_strings, child_is_cols):
         """Render an ENode using the already-rendered child expressions."""
         if len(self.children) == 0:
             return self.op.to_pyspark([])
         else:
-            return self.op.to_pyspark(list(child_strings))
-
-    def init_pyspark_repr(self, child_strings):
-        # if len(self.children) == 0:
-        #     pyspark_rep = self.op.to_pyspark
-        # else:
-            pyspark_rep = self.op.to_pyspark(list(child_strings))
+            return self.op.to_pyspark(list(child_strings), list(child_is_cols))

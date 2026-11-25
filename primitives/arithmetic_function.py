@@ -15,7 +15,7 @@ class ArithmeticFunctionRegistry(BasePrimitiveRegistry):
     def init_functions(self) -> None:
 
         name = f"+"
-        return_type = PrimitiveType.TYPE_INT
+        return_type = (PrimitiveType.TYPE_INT, False)
         arg_types = [(PrimitiveType.TYPE_INT, False), (PrimitiveType.TYPE_INT, False)]
         category = Category.ARITHMETIC
 
@@ -32,7 +32,7 @@ class ArithmeticFunctionRegistry(BasePrimitiveRegistry):
 
 
         name = f"-"
-        return_type = PrimitiveType.TYPE_INT
+        return_type = (PrimitiveType.TYPE_INT, False)
         arg_types = [(PrimitiveType.TYPE_INT, False), (PrimitiveType.TYPE_INT, False)]
         category = Category.ARITHMETIC
 

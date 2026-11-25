@@ -176,7 +176,7 @@ class MasterPrimitiveRegistry:
         final_type = type if column_flag else determined_type
 
         name = f"{literal}"
-        return_type = final_type
+        return_type = (final_type, False)
         arg_types = []
         category = Category.LITERAL
 
@@ -193,11 +193,11 @@ class MasterPrimitiveRegistry:
     def return_primitive_for_field(self, field: str, field_type: str) -> Primitive:
 
         name = f"{field}"
-        return_type = PrimitiveType.get_type_by_value(field_type)
+        return_type = (PrimitiveType.get_type_by_value(field_type), True)
         arg_types = []
         category = Category.FIELD
 
-        pyspark_str = BasePrimitiveRegistry.make_pyspark_formatter(f"{field}", arg_types)
+        pyspark_str = BasePrimitiveRegistry.make_pyspark_formatter(f"F.col('{field}')", arg_types)
 
         semantics = FieldSemantics(
             name=f"{field}",

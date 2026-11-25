@@ -37,6 +37,7 @@ class EGraphExtractor:
         # cost[root] and expr[root] hold the best known solution.
         cost = {root: inf for root in classes}
         expr = {root: None for root in classes}
+        cols = {root: None for root in classes}
 
 
         # Repeatedly improve the best expression for each class.
@@ -57,9 +58,10 @@ class EGraphExtractor:
                         cost[c] for c in child_ids
                     )
                     child_strings = [expr[c] for c in child_ids]
+                    child_cols = [cols[c] for c in child_ids]
 
                     #print(node)
-                    candidate_expr = node._render(child_strings)
+                    candidate_expr = node._render(child_strings, child_cols)
 
                     #print(candidate_expr)
 
@@ -68,6 +70,7 @@ class EGraphExtractor:
                     if candidate_cost < cost[root]:
                         cost[root] = candidate_cost
                         expr[root] = candidate_expr
+                        cols[root] = node.op.return_type[1]
                         changed = True
 
         return {
@@ -81,8 +84,8 @@ class EGraphExtractor:
         Extracts all valid expressions for every canonical e-class,
         safely breaking cycles using a path-tracking visiting set.
         """
-        # Map each canonical root to its set of (cost, expression) tuples
-        cache: dict[int, set[tuple[float, str]]] = {}
+        # Map each canonical root to its set of (cost, expression, column) tuples
+        cache: dict[int, set[tuple[float, str, bool]]] = {}
 
         # Get all canonical e-class roots
         classes = {}
@@ -90,17 +93,15 @@ class EGraphExtractor:
             root = self.egraph.U.find(class_id)
             classes.setdefault(root, set()).update(nodes)
 
-        def dfs(root_id: int, visiting: set[int]) -> set[tuple[float, str]]:
-            # 1. Return cached results if already computed
+        def dfs(root_id: int, visiting: set[int]) -> set[tuple[float, str, bool]]:
             if root_id in cache:
                 return cache[root_id]
 
-            # 2. Cycle Detection: If this root is already in the current recursion path, break the cycle
             if root_id in visiting:
                 return set()
 
             visiting.add(root_id)
-            local_exprs = set()
+            local_exprs: set[tuple[float, str, bool]] = set()
 
             try:
                 nodes = classes.get(root_id, set())
@@ -127,9 +128,12 @@ class EGraphExtractor:
                         candidate_cost = op_weight + sum(c[0] for c in child_comb)
                         
                         child_strings = [c[1] for c in child_comb]
-                        candidate_expr = node._render(child_strings)
+                        child_is_cols = [c[2] for c in child_comb]
+
+                        candidate_expr = node._render(child_strings, child_is_cols)
+                        candidate_is_col = bool(node.op.return_type[1])
                         
-                        local_exprs.add((candidate_cost, candidate_expr))
+                        local_exprs.add((candidate_cost, candidate_expr, candidate_is_col))
 
             finally:
                 visiting.remove(root_id)

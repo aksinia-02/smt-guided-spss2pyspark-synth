@@ -15,7 +15,7 @@ class StringFunctionRegistry(BasePrimitiveRegistry):
     def init_string_functions(self) -> None:
 
         name = f"startstring"
-        return_type = PrimitiveType.TYPE_STRING
+        return_type = (PrimitiveType.TYPE_STRING, True)
         arg_types = [(PrimitiveType.TYPE_INT, False), (PrimitiveType.TYPE_STRING, True)]
         category = Category.STRING_FUNCTION
 
@@ -30,7 +30,7 @@ class StringFunctionRegistry(BasePrimitiveRegistry):
         self.add_primitive(name, return_type, arg_types, category, semantics, pyspark_str, python_eval=python_eval, func=True)
 
         name = f"endstring"
-        return_type = PrimitiveType.TYPE_STRING
+        return_type = (PrimitiveType.TYPE_STRING, True)
         arg_types = [(PrimitiveType.TYPE_INT, False), (PrimitiveType.TYPE_STRING, True)]
         category = Category.STRING_FUNCTION
 
@@ -45,7 +45,7 @@ class StringFunctionRegistry(BasePrimitiveRegistry):
         self.add_primitive(name, return_type, arg_types, category, semantics, pyspark_str, python_eval=python_eval, func=True)
 
         name = f"substring"
-        return_type = PrimitiveType.TYPE_STRING
+        return_type = (PrimitiveType.TYPE_STRING, True)
         arg_types = [(PrimitiveType.TYPE_STRING, True), (PrimitiveType.TYPE_INT, False), (PrimitiveType.TYPE_INT, False)]
         category = Category.STRING_FUNCTION
 
@@ -60,7 +60,7 @@ class StringFunctionRegistry(BasePrimitiveRegistry):
         self.add_primitive(name, return_type, arg_types, category, semantics, pyspark_str, python_eval=python_eval, func=True)
 
         name = f"concat_ws"
-        return_type = PrimitiveType.TYPE_STRING
+        return_type = (PrimitiveType.TYPE_STRING, True)
         arg_types = [(PrimitiveType.TYPE_STRING, False), (PrimitiveType.TYPE_INT, True), (PrimitiveType.TYPE_INT, True)]
         category = Category.STRING_FUNCTION
 

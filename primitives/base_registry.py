@@ -25,15 +25,14 @@ class BasePrimitiveRegistry(ABC):
         Factory function that binds to a static string template immediately.
         Completely prevents late-binding loop variable bugs.
         """
-        def formatter(args: List[str]) -> str:
+        def formatter(args: List[str], child_is_cols: List[bool] = []) -> str:
             if not args:
                 return template
 
             formatted_args = []
-            for raw_arg, (date_type, is_column) in zip(args, arg_specs):
+            for raw_arg, (date_type, is_column), is_col in zip(args, arg_specs, child_is_cols):
                 # If the template already wrapped it or it's a raw column reference, handle here:
-                if is_column and not raw_arg.startswith("F.lit(") and not raw_arg.startswith("F.col("):
-                    print(f"Formatting column argument: {raw_arg}")
+                if is_column is not None and is_column != is_col:
                     formatted_args.append(f"F.lit({raw_arg})")
                 else:
                     formatted_args.append(str(raw_arg))

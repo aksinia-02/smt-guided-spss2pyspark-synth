@@ -121,7 +121,7 @@ class Verifier:
         print(f'Child Nodes: {children_nodes}')
 
         if op.category == Category.LITERAL:
-            if op.return_type == PrimitiveType.TYPE_INT:
+            if op.return_type[0] == PrimitiveType.TYPE_INT:
                 self.expr = z3.IntVal(op.z3_rep)
             else:
                 self.expr = z3.StringVal(op.z3_rep)
@@ -134,7 +134,7 @@ class Verifier:
                 PrimitiveType.TYPE_BOOLEAN.value: z3.Bool,
                 PrimitiveType.TYPE_FLOAT.value: z3.Real,
             }
-            self.expr = types_map.get(op.return_type.value)(op.z3_rep)
+            self.expr = types_map.get(op.return_type[0].value)(op.z3_rep)
 
         elif op.category == Category.DATE_NAMESPACE:
 
@@ -142,7 +142,7 @@ class Verifier:
 
             if callable(found):
                 if op.z3_rep == 'bd':
-                    self.expr = found(Verifier.year * 10000 + Verifier.month * 100 + Verifier.day, op.return_type.value)
+                    self.expr = found(Verifier.year * 10000 + Verifier.month * 100 + Verifier.day, op.return_type[0].value)
                 else:
                     if op.z3_rep == 'dif_30_90':
                         self.expr = found(op, op.semantics.amount)
@@ -171,7 +171,7 @@ class Verifier:
                     elif z3_rep == 'day':
                         self.expr = child_ver.expr % 100
                 else:
-                    if child.return_type == op.return_type:
+                    if child.return_type[0] == op.return_type[0]:
                         self.expr = child_ver.expr
                     else:
                         casted = Verifier.apply_cast(z3_rep, child_ver.expr, child_ver.expr)
@@ -182,7 +182,7 @@ class Verifier:
                             self.expr = child_ver.expr   
 
             else:
-                if child.return_type == op.return_type:
+                if child.return_type[0] == op.return_type[0]:
                     self.expr = child_ver.expr
                 elif z3_rep == 'to_string':
                     self.expr = z3.IntToStr(children_ver[0].expr)
@@ -386,16 +386,16 @@ class Verifier:
         }
 
         if op.semantics.direction == 'plus':
-            result = cls_units.get(op.return_type.value) + p
+            result = cls_units.get(op.return_type[0].value) + p
         if op.semantics.direction == 'minus':
-            result = cls_units.get(op.return_type.value) - p
+            result = cls_units.get(op.return_type[0].value) - p
         return result
 
     @classmethod
     def dif_30_90(cls, op:Primitive, p: int):
         target_y, target_m, target_d = cls.calculate_plus_minus(op.semantics.direction, 'days', op.semantics.amount)
         result = target_y * 10000 + target_m * 100 + target_d
-        return cls.cast_to_type(result, op.return_type.value)
+        return cls.cast_to_type(result, op.return_type[0].value)
 
     @classmethod
     def unit_end_start(cls, op:Primitive, p: int):
@@ -417,18 +417,18 @@ class Verifier:
                 result = cls.ordinal(cls.year, 12, cls.days_in_month(cls.year, 12))
             else:
                 result = cls.ordinal(cls.year, 1, 1)
-        return cls.cast_to_type(result, op.return_type.value)
+        return cls.cast_to_type(result, op.return_type[0].value)
 
     @classmethod
     def unit_plus_minus(cls, op:Primitive, p: int):
         target_y, target_m, target_d = cls.calculate_plus_minus(op.semantics.direction, op.semantics.unit, p)
         result = target_y * 10000 + target_m * 100 + target_d
-        return cls.cast_to_type(result, op.return_type.value)
+        return cls.cast_to_type(result, op.return_type[0].value)
 
     @classmethod
     def unit_plus_minus_end_start(cls, op:Primitive, p:int):
         result = cls.date_plus_minus_start_end(op.semantics.direction, op.semantics.unit, op.semantics.jump, p)
-        return cls.cast_to_type(result, op.return_type.value)
+        return cls.cast_to_type(result, op.return_type[0].value)
 
     @classmethod
     def calculate_plus_minus(cls, direction: str, unit: str, p: int):

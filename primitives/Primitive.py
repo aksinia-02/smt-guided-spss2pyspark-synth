@@ -16,7 +16,7 @@ ArgSpec = Tuple[DateType, bool] # True if the argument is a column, False if it'
 @dataclass
 class Primitive:
     name: str
-    return_type: DateType
+    return_type: ArgSpec
     arg_types: List[ArgSpec]
     category: Category
     semantics: BaseSemantics
@@ -38,7 +38,7 @@ class Primitive:
 
     def get_semantic_prim(self, args):
 
-        return_type = self.return_type.primitive_type if isinstance(self.return_type, DateType) else self.return_type
+        return_type = self.return_type[0].primitive_type if isinstance(self.return_type[0], DateType) else self.return_type[0]
 
         return (return_type, self.python_eval(args, {}))
 
@@ -51,7 +51,7 @@ class Primitive:
             print(f'Evaluated children: {eval_children}')
             if self.python_eval is not None:
                 result = self.python_eval(eval_children, {})
-                return (self.return_type.primitive_type, result)
+                return (self.return_type[0].primitive_type, result)
 
             # today = date.today()
             # today_int = today.year * 10000 + today.month * 100 + today.day
@@ -83,10 +83,10 @@ class Primitive:
                 return (self.semantics.target_type, self.name)
 
         elif isinstance(self.semantics, FieldSemantics):
-            return (self.return_type, self.name)
+            return (self.return_type[0], self.name)
 
         elif isinstance(self.semantics, BaseSemantics):
             print(self.semantics.target_type)
-            return (self.return_type, int(self.semantics.name)) if self.semantics.target_type == PrimitiveType.TYPE_INT else (self.semantics.target_type, self.semantics.name)
+            return (self.return_type[0], int(self.semantics.name)) if self.semantics.target_type == PrimitiveType.TYPE_INT else (self.semantics.target_type, self.semantics.name)
 
         return None

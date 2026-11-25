@@ -130,13 +130,13 @@ class EGraphSynthesizer:
 
             log_primitive("Best primitive found", best_prim, level=logging.INFO)
 
-            if best_prim.return_type != expected_type:
+            if best_prim.return_type[0] != expected_type:
 
                 # expected_type = DateType.get_type_by_value_format(expected_type, best_prim.return_type.format)
                 # print('Expected type')
                 # print(expected_type)
 
-                cast_func = self.primitives.match_type(best_prim.return_type, expected_type, data_rep=best_prim.semantics.date_rep)
+                cast_func = self.primitives.match_type(best_prim.return_type[0], expected_type, data_rep=best_prim.semantics.date_rep)
                 log_list("Cast functions found", cast_func, level=logging.INFO)
                 cand_id = egraph.add(ENode(op=cast_func[0], children=(cand_id,)))
 
@@ -151,7 +151,7 @@ class EGraphSynthesizer:
         elif isinstance(node, BinaryOpNode):
 
             left_id = self.ingest_spss_ast(egraph, node.left, expected_type)
-            left_type = next(iter(egraph.M[left_id])).op.return_type
+            left_type = next(iter(egraph.M[left_id])).op.return_type[0]
             right_id = self.ingest_spss_ast(egraph, node.right, expected_type)
 
 
