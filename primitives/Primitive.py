@@ -5,7 +5,7 @@ from enums.smt_types import DateType
 
 from enums.categories import Category
 from enums.smt_types import PrimitiveType
-from .Semantics import BaseSemantics, LiteralSemantics, FuncSemantics, StringSemantics, DateSemantics
+from .Semantics import BaseSemantics, FieldSemantics, LiteralSemantics, FuncSemantics, StringSemantics, DateSemantics
 
 from primitives.dataparams.dataparams import DatesNamespace
 
@@ -43,6 +43,7 @@ class Primitive:
         return (return_type, self.python_eval(args, {}))
 
     def get_semantic(self, params: List[Tuple[PrimitiveType, str]]):
+        print(f'Params: {params}')
 
         if isinstance(self.semantics, DateSemantics):
 
@@ -78,6 +79,11 @@ class Primitive:
                     result = self.python_eval(eval_children, {})
 
                 return (self.semantics.target_type, result)
+            else:
+                return (self.semantics.target_type, self.name)
+
+        elif isinstance(self.semantics, FieldSemantics):
+            return (self.return_type, self.name)
 
         elif isinstance(self.semantics, BaseSemantics):
             print(self.semantics.target_type)

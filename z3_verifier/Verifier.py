@@ -126,6 +126,16 @@ class Verifier:
             else:
                 self.expr = z3.StringVal(op.z3_rep)
 
+        elif op.category == Category.FIELD:
+            types_map = {
+                PrimitiveType.TYPE_INT.value: z3.Int,
+                PrimitiveType.TYPE_STRING.value: z3.String,
+                PrimitiveType.TYPE_DATE.value: z3.String,
+                PrimitiveType.TYPE_BOOLEAN.value: z3.Bool,
+                PrimitiveType.TYPE_FLOAT.value: z3.Real,
+            }
+            self.expr = types_map.get(op.return_type.value)(op.z3_rep)
+
         elif op.category == Category.DATE_NAMESPACE:
 
             found = Verifier.kb_dates.get(op.z3_rep)
@@ -169,39 +179,7 @@ class Verifier:
                             self.expr = casted
                         else:
                             print(f"Unhandled cast operation: {op.name} with z3_rep: {z3_rep}")
-                            self.expr = child_ver.expr
-            #         found = Verifier.kb_dates.get(child.z3_rep)
-            #         print(f'Found for casting: {found}')
-
-            #         if callable(found):
-            #             old_type = child.return_type
-            #             child.return_type = op.return_type
-
-            #             if child.z3_rep == 'bd':
-            #                 self.expr = found(Verifier.year * 10000 + Verifier.month * 100 + Verifier.day, child.return_type.value)
-            #             else:
-            #                 if child.z3_rep == 'dif_30_90':
-            #                     self.expr = found(child, child.semantics.amount)
-            #                 else:
-            #                     self.expr = found(child, children_ver[0].expr)
-            #             child.return_type = old_type
-            #             print(f'callable found for casting: {self.expr}')
-
-            #         else:
-            #             # Handle direct expressions/constants stored in kb_dates (e.g. bd_year -> year)
-            #             raw_expr = found if found is not None else child_ver.expr
-
-            #             if child.return_type == op.return_type:
-            #                 self.expr = child_ver.expr
-                        
-            #             #Apply the requested cast on the expression
-            #             elif z3_rep == 'to_string':
-            #                 self.expr = Verifier.pad2(raw_expr)
-            #             elif z3_rep == 'to_int':
-            #                 self.expr = z3.StrToInt(raw_expr)
-            #             else:
-            #                 print(f"Unhandled cast operation: {op.name} with z3_rep: {z3_rep}")
-            #                 self.expr = raw_expr    
+                            self.expr = child_ver.expr   
 
             else:
                 if child.return_type == op.return_type:

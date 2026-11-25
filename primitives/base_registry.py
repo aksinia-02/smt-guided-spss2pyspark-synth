@@ -33,6 +33,7 @@ class BasePrimitiveRegistry(ABC):
             for raw_arg, (date_type, is_column) in zip(args, arg_specs):
                 # If the template already wrapped it or it's a raw column reference, handle here:
                 if is_column and not raw_arg.startswith("F.lit(") and not raw_arg.startswith("F.col("):
+                    print(f"Formatting column argument: {raw_arg}")
                     formatted_args.append(f"F.lit({raw_arg})")
                 else:
                     formatted_args.append(str(raw_arg))

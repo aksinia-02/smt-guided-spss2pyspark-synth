@@ -50,6 +50,7 @@ class PrimitiveType(Enum):
     TYPE_DATE = "date"
     TYPE_BOOLEAN = "bool"
     TYPE_ANY = "any"
+    TYPE_FLOAT = "float"
 
     def __str__(self) -> str:
         return self.value

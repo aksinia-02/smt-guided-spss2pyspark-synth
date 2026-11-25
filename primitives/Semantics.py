@@ -48,3 +48,8 @@ class LiteralSemantics(BaseSemantics):
     value: Optional[str] = None
     weight: int = 0
     column_flag: bool = False  # True if the literal represents a column name, False otherwise
+
+@dataclass
+class FieldSemantics(BaseSemantics):
+    """Semantics specific to field values."""
+    weight: int = 0

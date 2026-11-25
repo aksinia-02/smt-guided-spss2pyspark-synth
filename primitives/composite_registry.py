@@ -3,12 +3,13 @@ from typing import List
 from enums.smt_types import DateType, PrimitiveType
 from enums.categories import Category
 
-from .Semantics import DateSemantics, FuncSemantics, BaseSemantics, LiteralSemantics
+from .Semantics import DateSemantics, FieldSemantics, FuncSemantics, BaseSemantics, LiteralSemantics
 from .Primitive import Primitive
 from .date_primitives import DatePrimitiveRegistry
 from .cast_functions import CastFunctionRegistry
 from .string_functions import StringFunctionRegistry
 from .arithmetic_function import ArithmeticFunctionRegistry
+from .conditions import ConditionsRegistry
 
 from .base_registry import BasePrimitiveRegistry
 
@@ -70,6 +71,7 @@ class MasterPrimitiveRegistry:
             CastFunctionRegistry(),
             StringFunctionRegistry(),
             ArithmeticFunctionRegistry(),
+            ConditionsRegistry(),
             #DatePrimitiveRegistry(20250225)
             # Add new function domain children here
         ]
@@ -78,6 +80,7 @@ class MasterPrimitiveRegistry:
         self.cast_functions = self.registries[1].primitives
         self.string_functions = self.registries[2].primitives
         self.arith_functions = self.registries[3].primitives
+        self.condition_functions = self.registries[4].primitives
 
     def get_function_by_name(self, name: str) -> Primitive:
         """
@@ -90,6 +93,9 @@ class MasterPrimitiveRegistry:
             if func.name == name:
                 return func
         for func in self.arith_functions:
+            if func.name == name:
+                return func
+        for func in self.condition_functions:
             if func.name == name:
                 return func
         print(f"Function '{name}' not found in the registered functions.")
@@ -145,10 +151,13 @@ class MasterPrimitiveRegistry:
         """
         Returns the plus function for the specified type.
         """
-        if type == PrimitiveType.TYPE_STRING:
-            return self.get_function_by_name("concat_ws")
-        if type == PrimitiveType.TYPE_INT:
-            return self.get_function_by_name("-")
+        if op == "+":
+            if type == PrimitiveType.TYPE_STRING:
+                return self.get_function_by_name("concat_ws")
+            if type == PrimitiveType.TYPE_INT:
+                return self.get_function_by_name("+")
+        else: 
+            return self.get_function_by_name(op)
         return None
 
     # type is not None if column is given
@@ -180,6 +189,22 @@ class MasterPrimitiveRegistry:
         )
 
         return Primitive(name, return_type, arg_types, category, semantics, pyspark_str, python_eval=None, z3_rep=literal)
+
+    def return_primitive_for_field(self, field: str, field_type: str) -> Primitive:
+
+        name = f"{field}"
+        return_type = PrimitiveType.get_type_by_value(field_type)
+        arg_types = []
+        category = Category.FIELD
+
+        pyspark_str = BasePrimitiveRegistry.make_pyspark_formatter(f"{field}", arg_types)
+
+        semantics = FieldSemantics(
+            name=f"{field}",
+            target_type=return_type,
+        )
+
+        return Primitive(name, return_type, arg_types, category, semantics, pyspark_str, python_eval=None, z3_rep=field)
 
 
     @log_step

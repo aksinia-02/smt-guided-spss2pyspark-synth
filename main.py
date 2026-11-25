@@ -10,7 +10,7 @@ from SemanticMatcher import SemanticMatcher
 def main(args):
     # test_z3()
     # return
-    test_re_expressions(args.file)
+    test_re_expressions(args.file, args.input)
     return
     # decoded_qeustions = test_prim(args.file)
 
@@ -31,7 +31,8 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Parser from SPSS to pyspark code")
-    parser.add_argument("-f", "--file", type=str, required=True, nargs="+", help="File with Expressions to parse, e.g., '$P-plus1tag', '$P-minus2monat'")
+    parser.add_argument("-f", "--file", type=str, required=False, nargs="+", help="File with Expressions to parse")
+    parser.add_argument("-i", "--input", type=str, required=False, help="File with Expressions to parse")
     args = parser.parse_args()
     #test_dataparam()
 

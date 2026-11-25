@@ -7,6 +7,8 @@ class Category(Enum):
     STRING_FUNCTION = "string_function"
     LITERAL = "literal"
     ARITHMETIC = "arithmetic"
+    FIELD = "field"
+    CONDITION = "condition"
 
     def __repr__(self) -> str:
         return f"'{self.value}'"

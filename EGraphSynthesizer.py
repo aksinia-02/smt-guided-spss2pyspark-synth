@@ -11,7 +11,7 @@ from enums.smt_types import DateType, PrimitiveType
 from enums.categories import Category
 
 from primitives.composite_registry import MasterPrimitiveRegistry
-from SPSSExpressionParser import ParamNode, FunctionCallNode, BinaryOpNode, LiteralNode
+from SPSSExpressionParser import ParamNode, FunctionCallNode, BinaryOpNode, LiteralNode, FieldNode
 
 import functools
 import inspect
@@ -65,7 +65,7 @@ class EGraphSynthesizer:
         #             "eval:", p.python_eval([1], None)
         #         )
 
-    def synthesize(self, spss_ast, expected_type: DateType, max_iterations: int = 1) -> str:
+    def synthesize(self, spss_ast, expected_type: DateType, available_columns: List, max_iterations: int = 1) -> str:
 
         # visitor = SPSSASTVisitor()
         # visitor.visit(spss_ast)
@@ -75,6 +75,7 @@ class EGraphSynthesizer:
         egraph = EGraph()
 
         logger.debug("##########       Construction EGraph       ##########")
+        self.available_columns = available_columns
         root_id = self.ingest_spss_ast(egraph, spss_ast, expected_type)
         egraph.root_id = root_id
 
@@ -178,7 +179,7 @@ class EGraphSynthesizer:
                     rewrite_cast = True
 
             # print(f'Reqrite cast {rewrite_cast}') 
-
+            
             # if rewrite_cast and func.category == Category.CAST_TYPE:
             #     # TODO
             #     func = self.primitives.match_type(DateType.TYPE_DATE, expected_type)
@@ -188,6 +189,17 @@ class EGraphSynthesizer:
             #     self.ingest_spss_ast(egraph, arg, expected_type) # TODO replace with expected_type inference based on function signature
             #     for arg in node.args
             # )
+
+            return egraph.add(ENode(op=func, children=child_ids))
+
+        elif isinstance(node, FieldNode):
+
+            field_type = self.available_columns.get(node.name)
+            if not field_type:
+                raise ValueError(f"Field '{node.name}' not found in available columns.")
+
+            field_primitive = self.primitives.return_primitive_for_field(node.name, field_type)
+            return egraph.add(ENode(op=field_primitive))
 
             return egraph.add(ENode(op=func, children=child_ids))
 
