@@ -37,17 +37,16 @@ class RewriteRule:
                     n = len(eq_prims)
 
                     if n > 0:
-                        changed = True
                         if param_flag:
                             child_id = egraph.add(ENode(op=eq_prims[0], children=(children_ids[0],)))
                         else:
                             child_id = egraph.add(ENode(op=eq_prims[0], children=()))
 
                         if n == 1:
-                            egraph.merge(eclass_id, child_id)
+                            changed = egraph.merge(eclass_id, child_id)
                         else:
                             cast_id = egraph.add(ENode(op=eq_prims[1], children=(child_id,)))
-                            egraph.merge(eclass_id, cast_id)
+                            changed = egraph.merge(eclass_id, cast_id)
 
             if enode.op.category == Category.CAST_TYPE:
                 logger.debug(f"Entering second rule | Node: {enode}")
@@ -58,8 +57,7 @@ class RewriteRule:
                 child_type = child.op.return_type[0]
 
                 if child_type == enode.op.return_type[0]:
-                    changed = True
-                    egraph.merge(eclass_id, child_id)
+                    changed = egraph.merge(eclass_id, child_id)
 
             if enode.op.category == Category.CAST_TYPE:
                 logger.debug(f"Entering third rule | Node: {enode}")
@@ -81,22 +79,59 @@ class RewriteRule:
 
                     n = len(eq_prims)
                     if n > 0:
-                        changed = True
                         if param_flag:
                             child_id = egraph.add(ENode(op=eq_prims[0], children=(children_ids[0],)))
                         else:
                             child_id = egraph.add(ENode(op=eq_prims[0], children=()))
                         if n == 1:
-                            egraph.merge(eclass_id, child_id)
+                            changed = egraph.merge(eclass_id, child_id)
                         else:
                             cast_id = egraph.add(ENode(op=eq_prims[1], children=(child_id,)))
-                            egraph.merge(eclass_id, cast_id)
+                            changed = egraph.merge(eclass_id, cast_id)
+
+            if enode.op.category == Category.ARITHMETIC:
+                logger.debug(f"Entering flip rule | Node: {enode}")
+
+
+                if enode.op.name == "<=" or enode.op.name == '<':
+                    new_op = self.primitives.get_function_by_name(enode.op.name.replace('<', '>'))
+                    new_id = egraph.add(ENode(op=new_op, children=(enode.children[1], enode.children[0])))
+                    changed = egraph.merge(eclass_id, new_id)
+
+            if enode.op.semantics.symmetric:
+                print('Found symmetric')
+
+                child1_id, child2_id = enode.children
+                new_id = egraph.add(ENode(op=enode.op, children=(child2_id, child1_id)))
+                print(f'class id: {eclass_id}, new id: {new_id}')
+                changed = egraph.merge(eclass_id, new_id)
+                print(f'Changed {changed}')
+
+            if enode.op.category == Category.CONDITION:
+
+                if enode.op.name == "and":
+
+                    child1_id, child2_id = enode.children
+
+                    child1 = egraph.find_node_in_class(child1_id, ">=")
+                    child2 = egraph.find_node_in_class(child2_id, ">=")
+
+                    if child1 is not None and child2 is not None:
+
+                        child_1_1_id, child_1_2_id = child1.children
+                        child_2_1_id, child_2_2_id = child2.children
+
+                        new_op = self.primitives.get_function_by_name('between')
+                        if child_1_1_id == child_2_2_id:
+                            new_id = egraph.add(ENode(op=new_op, children=(child_1_1_id, child_1_2_id, child_2_1_id)))
+                            changed = egraph.merge(eclass_id, new_id)
+                        elif child_1_2_id == child_2_1_id:
+                            new_id = egraph.add(ENode(op=new_op, children=(child_1_2_id, child_2_2_id, child_1_1_id)))
+                            changed = egraph.merge(eclass_id, new_id)
+                        print('Done')
 
         
         return changed
-
-        return eq_prims
-
 
 
 

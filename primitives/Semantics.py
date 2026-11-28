@@ -8,6 +8,7 @@ class BaseSemantics(ABC):
     """Abstract parent class for all semantics objects."""
     name: Optional[str]
     target_type: Optional[PrimitiveType]  # e.g. TYPE_DATE, TYPE_INT_YM, TYPE_INT
+    symmetric: bool = False
 
     def __repr__(self) -> str:
         """Custom repr that prints only fields with non-None values."""

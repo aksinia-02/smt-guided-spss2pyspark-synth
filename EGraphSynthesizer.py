@@ -86,7 +86,7 @@ class EGraphSynthesizer:
 
         logger.debug("##########       Rewrite EGraph       ##########")
         rewriter = RewriteRule(self.primitives)
-        for _ in range(max_iterations):
+        for _ in range(100):
             print('start rewriting')
             logger.debug(f' new Graph {egraph}')
             print(f'new Graph {egraph}')

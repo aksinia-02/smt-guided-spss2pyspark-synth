@@ -45,7 +45,7 @@ class ConditionsRegistry(BasePrimitiveRegistry):
 
         name = f"="
         return_type = (PrimitiveType.TYPE_BOOLEAN, True)
-        arg_types = [(PrimitiveType.TYPE_INT, None), (PrimitiveType.TYPE_INT, None)]
+        arg_types = [(PrimitiveType.TYPE_INT, True), (PrimitiveType.TYPE_INT, True)]
         category = Category.ARITHMETIC
 
         pyspark_str = f"{{0}}.eqNullSafe({{1}})"
@@ -54,7 +54,23 @@ class ConditionsRegistry(BasePrimitiveRegistry):
             name=f"=",
             target_type=PrimitiveType.TYPE_INT,
             import_type=PrimitiveType.TYPE_INT,
-            weight=50
+            weight=50,
+            symmetric=True
+        )
+        self.add_primitive(name, return_type, arg_types, category, semantics, pyspark_str, func=True)
+
+        name = f"between"
+        return_type = (PrimitiveType.TYPE_BOOLEAN, True)
+        arg_types = [(PrimitiveType.TYPE_ANY, True), (PrimitiveType.TYPE_INT, False), (PrimitiveType.TYPE_INT, False)]
+        category = Category.ARITHMETIC
+
+        pyspark_str = f"{{0}}.between({{1}}, {{2}})"
+        
+        semantics = FuncSemantics(
+            name=f"between",
+            target_type=PrimitiveType.TYPE_INT,
+            import_type=PrimitiveType.TYPE_INT,
+            weight=0
         )
         self.add_primitive(name, return_type, arg_types, category, semantics, pyspark_str, func=True)
 
@@ -63,7 +79,7 @@ class ConditionsRegistry(BasePrimitiveRegistry):
             arg_types = [(PrimitiveType.TYPE_INT, None), (PrimitiveType.TYPE_INT, None)]
             category = Category.ARITHMETIC
 
-            pyspark_str = f"{{0}} {op} {{1}}"
+            pyspark_str = f"({{0}} {op} {{1}})"
             
             semantics = FuncSemantics(
                 name=f"{op}",
@@ -93,6 +109,7 @@ class ConditionsRegistry(BasePrimitiveRegistry):
                 name=f"{bool_cond}",
                 target_type=PrimitiveType.TYPE_BOOLEAN,
                 import_type=PrimitiveType.TYPE_BOOLEAN,
-                weight=0
+                weight=0,
+                symmetric=True if bool_cond in ['and', 'or'] else False
             )
             self.add_primitive(name, return_type, arg_types, category, semantics, pyspark_str, python_eval=None, func=True)

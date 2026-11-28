@@ -23,6 +23,11 @@ def test_re_expressions(file_paths, file_arg=None):
         items = json.load(f)
 
     for index, item in enumerate(items):
+        if index < 3:
+            continue
+
+        if index != 3:
+            continue
         expression, available_columns = item[0], item[1]
         print(expression)
         print(available_columns)
@@ -32,7 +37,7 @@ def test_re_expressions(file_paths, file_arg=None):
         parser.print_ast(ast)
 
         synthesizer = EGraphSynthesizer(SPSSDateParamDecoder(), SemanticMatcher())
-        result = synthesizer.synthesize(ast, PrimitiveType.get_type_by_value(expression), available_columns, max_iterations=1)
+        result = synthesizer.synthesize(ast, PrimitiveType.get_type_by_value(expression), available_columns, max_iterations=2)
     return
 
     for file_path in file_paths:

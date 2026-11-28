@@ -96,12 +96,10 @@ class EGraph:
         root1 = self.U.find(id1)
         root2 = self.U.find(id2)
         if root1 == root2:
-            return root1
+            #return root1
+            return False
 
         self.merging_counter += 1
-
-        if root1 == 12 and root2 == 21:
-            print(self)
 
         print(self)
         print('Merging EClasses Verifier', root1, 'and', root2)
@@ -111,9 +109,10 @@ class EGraph:
         
         if not can_merge:
             # Reject merge safely without corrupting Union-Find
-            if self.merging_counter == 7:
-                raise Exception("Merging EClasses 4 and 16 is not allowed.")
-            return root1
+            # if self.merging_counter == 7:
+            #     raise Exception("Merging EClasses 4 and 16 is not allowed.")
+            #return root1
+            return False
 
         new_root = self.U.union(root1, root2)
         old_root = root1 if new_root == root2 else root2
@@ -127,8 +126,8 @@ class EGraph:
         if old_root in self.V:
             del self.V[old_root]
 
-        if self.merging_counter == 7:
-            raise Exception("Merging EClasses 4 and 16 is not allowed.")
+        # if self.merging_counter == 7:
+        #     raise Exception("Merging EClasses 4 and 16 is not allowed.")
 
         # # 1. Move and canonicalize ENodes into new_root
         # combined_nodes = set()
@@ -154,7 +153,8 @@ class EGraph:
         # # 3. Repair parent nodes / hashcons collisions (congruence)
         # self.rebuild()
 
-        return new_root
+        #return new_root
+        return True
 
     def fill_semanctic(self, eclass_id: int, enode: ENode):
 
@@ -279,6 +279,13 @@ class EGraph:
 
         finally:
             visiting.remove(state)
+
+    def find_node_in_class(self, class_id, target_op_name=">="):
+        root = self.U.find(class_id)
+        for node in self.M.get(root, ()):
+            if node.op.name == target_op_name:
+                return node
+        return None
 
 
     def __repr__(self):
